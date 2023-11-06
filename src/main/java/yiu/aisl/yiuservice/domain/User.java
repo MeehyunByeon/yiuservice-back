@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.apache.ibatis.annotations.Update;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,10 +21,10 @@ public class User {
     @Id // pk
     private Long studentId;
 
-    @Column(nullable = false, unique = true, columnDefinition = "varchar(10)")
+    @Column(nullable = false, unique = true, length = 10)
     private String nickname;
 
-    @Column(nullable = false, columnDefinition = "varchar(255)")
+    @Column(nullable = false, length = 255)
     private String pwd;
 
     @Column(columnDefinition = "TEXT")
@@ -34,6 +36,7 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String fcm;
 
+    @CreatedDate
     @Column
     private LocalDateTime createdAt;
 
@@ -41,5 +44,13 @@ public class User {
     @Column
     private LocalDateTime updatedAt;
 
-//    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    //    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+
+    public void encodePwd(PasswordEncoder passwordEncoder){
+        this.pwd = passwordEncoder.encode(pwd);
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
 }

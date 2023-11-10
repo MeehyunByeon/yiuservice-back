@@ -1,4 +1,4 @@
-package yiu.aisl.yiuservice.security;
+package yiu.aisl.yiuservice.config.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.*;
@@ -6,16 +6,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import yiu.aisl.yiuservice.config.jwt.JwtProperties;
 import yiu.aisl.yiuservice.domain.User;
 
 import java.nio.charset.StandardCharsets;
@@ -23,12 +19,11 @@ import java.security.Key;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
-public class JwtProvider {
+public class TokenProvider {
 
     private final JwtProperties jwtProperties;
 

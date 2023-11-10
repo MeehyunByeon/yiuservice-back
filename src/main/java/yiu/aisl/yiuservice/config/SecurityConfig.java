@@ -1,7 +1,7 @@
 package yiu.aisl.yiuservice.config;
 
-import yiu.aisl.yiuservice.security.JwtProvider;
-import yiu.aisl.yiuservice.security.JwtAuthenticationFilter;
+import yiu.aisl.yiuservice.config.jwt.TokenAuthenticationFilter;
+import yiu.aisl.yiuservice.config.jwt.TokenProvider;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,7 +35,7 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final JwtProvider jwtProvider;
+    private final TokenProvider tokenProvider;
 
     @Bean
     public SecurityFilterChain filterChain(final @NotNull HttpSecurity http) throws Exception {
@@ -69,7 +69,7 @@ public class SecurityConfig {
                                 .anyRequest().authenticated()
                 )
                 // JWT 인증 필터 적용
-                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new TokenAuthenticationFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class)
                 // 에러 핸들링
                 .exceptionHandling(authenticationManager -> authenticationManager
                         .authenticationEntryPoint(new AuthenticationEntryPoint() {

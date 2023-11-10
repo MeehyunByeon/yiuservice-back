@@ -13,12 +13,13 @@ import java.util.List;
 
 @Entity // 테이블과 링크될 클래스(카멜케이스 + _ => 테이블 이름 매칭) // ex) SalesManager.java -> sales_manager table
 @Getter
-@Setter
 @Builder // 1) 해당 클래스 빌더 패턴 클래스 생성 2) 생성자 상단 선언 -> 생성자에 포함된 필드만 빌더에 포함
 @AllArgsConstructor
-@NoArgsConstructor // 1) 기본 생성자 자동 추가 2) public Posts() {}와 같은 효과
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // 1) 기본 생성자 자동 추가 2) public Posts() {}와 같은 효과
 public class User {
     @Id // pk
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(unique = true)
     private Long studentId;
 
     @Column(nullable = false, unique = true, length = 10)
@@ -52,5 +53,15 @@ public class User {
 
     public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    public User(Long studentId, String refreshToken) {
+        this.studentId = studentId;
+        this.refreshToken = refreshToken;
+    }
+
+    public User update(String newRefreshToken) {
+        this.refreshToken = newRefreshToken;
+        return this;
     }
 }

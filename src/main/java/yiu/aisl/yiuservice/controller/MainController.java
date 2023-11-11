@@ -19,34 +19,36 @@ import yiu.aisl.yiuservice.service.UserService;
 public class MainController {
     private final UserService userService;
     private final UserRepository userRepository;
-    private TokenService tokenService;
+    private final TokenService tokenService;
 
     @PostMapping(value = "/join", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    @ResponseBody
-    public ResponseEntity<Boolean> join(@RequestBody UserJoinRequestDto request) throws Exception {
-        return new ResponseEntity<>(userService.join(request), HttpStatus.OK);
+    public ResponseEntity<Boolean> join(UserJoinRequestDto request) throws Exception {
+        System.out.println("join: " + request.getStudentId());
+        return new ResponseEntity<Boolean>(userService.join(request), HttpStatus.OK);
     }
 
-    @PostMapping(value = "/login")
-    @ResponseBody
-    public ResponseEntity<UserLoginResponseDto> login(@RequestBody UserLoginRequestDto request) throws Exception {
+    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<UserLoginResponseDto> login(UserLoginRequestDto request) throws Exception {
+        System.out.println("login: " + request.getStudentId() + request.getPwd());
         return new ResponseEntity<UserLoginResponseDto>(userService.login(request), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/logout")
+    @GetMapping(value = "/logout", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public Boolean logout(HttpServletRequest request, HttpServletResponse response) {
         new SecurityContextLogoutHandler().logout(request, response, SecurityContextHolder.getContext().getAuthentication());
         return true;
     }
 
-    @PostMapping(value = "/refresh")
-    @ResponseBody
-    public ResponseEntity<CreateAccessTokenResponse> createNewAccessToken(@RequestBody CreateAccessTokenRequest request) {
-        String newAccessToken = tokenService.createNewAccessToken(request.getRefreshToken());
+    @PostMapping(value = "/refresh", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<CreateAccessTokenResponse> createNewAccessToken(CreateAccessTokenRequest request) {
+        System.out.println("/refresh - access: " + request.getAccessToken());
+        System.out.println("/refresh - refresh: " + request.getRefreshToken());
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new CreateAccessTokenResponse(newAccessToken));
+//        return ResponseEntity.status(HttpStatus.CREATED)
+//                .body(new CreateAccessTokenResponse(newAccessToken));
+        return new ResponseEntity<CreateAccessTokenResponse>(tokenService.createNewAccessToken(request), HttpStatus.OK);
     }
+
 //    public ResponseEntity<Boolean> join(@RequestBody UserJoinRequestDto request) throws Exception {
 //        return new ResponseEntity<>(userService.join(request), HttpStatus.OK);
 //    }

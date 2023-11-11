@@ -27,7 +27,7 @@ public class TokenProvider {
 
     private final JwtProperties jwtProperties;
 
-    @Value("${jwt.secret.key}")
+//    @Value("${jwt.secret.key}")
     private String salt;
 
     private Key secretKey;
@@ -36,10 +36,10 @@ public class TokenProvider {
     private final long exp = 1000L * 60; // 1분
 
 
-    @PostConstruct
-    protected void init() {
-        secretKey = Keys.hmacShaKeyFor(salt.getBytes(StandardCharsets.UTF_8));
-    }
+//    @PostConstruct
+//    protected void init() {
+//        secretKey = Keys.hmacShaKeyFor(salt.getBytes(StandardCharsets.UTF_8));
+//    }
 
     // JWT 토큰 생성 메서드
     public String generateToken(User user, Duration expiredAt) {

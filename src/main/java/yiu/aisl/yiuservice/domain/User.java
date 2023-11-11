@@ -3,8 +3,10 @@ package yiu.aisl.yiuservice.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.apache.ibatis.annotations.Update;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -18,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // 1) 기본 생성자 자동 추가 2) public Posts() {}와 같은 효과
 public class User {
     @Id // pk
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(unique = true)
     private Long studentId;
 
@@ -37,15 +39,25 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String fcm;
 
-    @CreatedDate
+//    @CreatedDate
+    @CreationTimestamp
     @Column
     private LocalDateTime createdAt;
 
+//    @LastModifiedDate
     @UpdateTimestamp
     @Column
     private LocalDateTime updatedAt;
 
     //    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+
+    public User(Long studentId, String nickname, String pwd, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.studentId = studentId;
+        this.nickname = nickname;
+        this.pwd = pwd;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
 
     public void encodePwd(PasswordEncoder passwordEncoder){
         this.pwd = passwordEncoder.encode(pwd);

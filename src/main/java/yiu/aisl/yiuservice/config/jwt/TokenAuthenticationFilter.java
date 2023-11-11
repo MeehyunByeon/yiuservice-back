@@ -15,7 +15,7 @@ import java.io.IOException;
 public class TokenAuthenticationFilter extends OncePerRequestFilter{
     private final TokenProvider tokenProvider;
     private final static String HEADER_AUTHORIZATION = "Authorization";
-    private final static String TOKEN_PROFIX = "Bearer ";
+    private final static String TOKEN_PREFIX = "Bearer ";
 
     @Override
     protected void doFilterInternal(
@@ -29,7 +29,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter{
         String token = getAccessToken(authorizationHeader);
         // 가져온 토큰이 유효한지 확인하고, 유효한 때는 인증 정보 설정
         // => 시큐리티 컨텍스트에 인증 정보를 설정
-        if(tokenProvider.validToken(token)) {
+        if(token != null && tokenProvider.validToken(token)) {
             Authentication authentication = tokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
@@ -39,8 +39,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter{
 
     private String getAccessToken(String authorizationHeader) {
         // 요청 헤더 'Authorization' 필드 값 가져와서 접두사 Bearer 제외하고 반환
-        if(authorizationHeader != null && authorizationHeader.startsWith(TOKEN_PROFIX)) {
-            return authorizationHeader.substring(TOKEN_PROFIX.length());
+        if(authorizationHeader != null && authorizationHeader.startsWith(TOKEN_PREFIX)) {
+            return authorizationHeader.substring(TOKEN_PREFIX.length());
         }
         return null;
     }

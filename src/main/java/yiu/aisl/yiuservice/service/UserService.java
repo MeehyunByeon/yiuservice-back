@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import yiu.aisl.yiuservice.domain.Token;
 import yiu.aisl.yiuservice.domain.User;
+import yiu.aisl.yiuservice.dto.TokenDto;
 import yiu.aisl.yiuservice.dto.UserJoinRequestDto;
 import yiu.aisl.yiuservice.dto.UserLoginRequestDto;
 import yiu.aisl.yiuservice.dto.UserLoginResponseDto;
@@ -14,6 +16,7 @@ import yiu.aisl.yiuservice.repository.UserRepository;
 import yiu.aisl.yiuservice.config.jwt.TokenProvider;
 
 import java.time.Duration;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -24,18 +27,20 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final TokenRepository tokenRepository;
     private final TokenProvider tokenProvider;
+//    private final TokenService tokenService;
+
+    private final long exp = 1000L * 60 * 60 * 24 * 14; // 14일
 
     @Transactional
     public Boolean join(UserJoinRequestDto request) throws Exception {
-//        if (userRepository.findByStudentId(requestDto.getStudentId()).isPresent()) {
-//            throw new Exception("이미 존재하는 학번입니다.");
-//        }
+        if (userRepository.findByStudentId(request.getStudentId()).isPresent()) {
+            throw new Exception("이미 존재하는 학번입니다.");
+        }
 
         try {
             User user = User.builder()
                     .studentId(request.getStudentId())
                     .nickname(request.getNickname())
-//                    .authNum(request.getAuthNum())
                     .pwd(passwordEncoder.encode(request.getPwd()))
                     .build();
             userRepository.save(user);
@@ -60,13 +65,31 @@ public class UserService {
             throw new BadCredentialsException("비밀번호 불일치");
         }
 
-        String accessToken = tokenProvider.generateToken(user, Duration.ofDays(14));
+        user.setRefreshToken(createRefreshToken(user));
+        String accessToken = tokenProvider.generateToken(user, Duration.ofHours(2));
 
         return UserLoginResponseDto.builder()
                 .studentId(user.getStudentId())
                 .nickname(user.getNickname())
                 .accessToken(accessToken)
                 .build();
+    }
+
+    public String createRefreshToken(User user) {
+        Token token = tokenRepository.save(
+                Token.builder()
+                        .studentId(user.getStudentId())
+                        .refreshToken(UUID.randomUUID().toString())
+                        .expiration(120) // 2분ㅋ
+                        .build()
+        );
+//        System.out.println("token" + token.getRefreshToken());
+        return token.getRefreshToken();
+    }
+
+    public User findByRefreshToken(String refreshToken) {
+        return userRepository.findByRefreshToken(refreshToken)
+                .orElseThrow(() -> new IllegalArgumentException("Unexpected token"));
     }
 
 //    public UserResponse login(UserRequest request) throws Exception {
@@ -97,56 +120,5 @@ public class UserService {
 //        return new UserResponse(user);
 //    }
 //
-//    public String createRefreshToken(User user) {
-//        System.out.println("1111111111111");
-//        Token token = tokenRepository.save(
-//                Token.builder()
-//                        .id(user.getId())
-//                        .refresh_token(UUID.randomUUID().toString())
-//                        .expiration(120) // 2분ㅋ
-//                        .build()
-//        );
-//        System.out.println("token" + token.getRefresh_token());
-//        return token.getRefresh_token();
-//    }
 //
-//    public Token validRefreshToken(User user, String refreshToken) throws Exception {
-//        Token token = tokenRepository.findById(user.getId()).orElseThrow(() -> new Exception("만료된 계정입니다. 로그인을 다시 시도하세요"));
-//        // 해당 유저 Refresh 토큰 만료 => Redis에 해당 유저의 토큰이 존재하지 않음
-//        if(token.getRefresh_token() == null) {
-//            return null;
-//        }
-//        else {
-//            // 리프레시 토큰 만료일자가 얼마 남지 않았을 때 만료시간 연장
-//            if(token.getExpiration() < 10) {
-//                token.setExpiration(1000);
-//                tokenRepository.save(token);
-//            }
-//
-//            // 토큰이 같은지 비교
-//            if(!token.getRefresh_token().equals(refreshToken)) {
-//                return null;
-//            }
-//            else {
-//                return token;
-//            }
-//        }
-//    }
-//
-//    public TokenDto refreshAccessToken(TokenDto token) throws Exception {
-//        String account = jwtProvider.getAccount(token.getAccess_token());
-//        User user = userRepository.findByAccount(account).orElseThrow(() ->
-//                new BadCredentialsException("잘못된 계정정보입니다."));
-//        Token refreshToken = validRefreshToken(user, token.getRefresh_token());
-//
-//        if (refreshToken != null) {
-//            return TokenDto.builder()
-//                    .access_token(jwtProvider.createToken(account, user.getRoles()))
-//                    .refresh_token(refreshToken.getRefresh_token())
-//                    .build();
-//        }
-//        else {
-//            throw new Exception("로그인을 해주세요");
-//        }
-//    }
 }

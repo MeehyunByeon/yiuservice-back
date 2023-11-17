@@ -9,5 +9,8 @@ import java.util.Optional;
 @Transactional
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByStudentId(Long studentId);
+
+    Optional<User> findByNickname(String nickname);
+
     Optional<User> findByRefreshToken(String refreshToken);
 }

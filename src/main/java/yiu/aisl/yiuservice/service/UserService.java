@@ -56,7 +56,7 @@ public class UserService {
             userRepository.save(user);
         }
         catch (Exception e) {
-            System.out.println(e.getMessage());
+//            System.out.println(e.getMessage());
             throw new Exception("잘못된 요청입니다.");
         }
         return true;

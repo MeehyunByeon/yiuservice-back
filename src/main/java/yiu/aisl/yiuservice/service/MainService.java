@@ -2,10 +2,8 @@ package yiu.aisl.yiuservice.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,7 +23,7 @@ import java.util.UUID;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class UserService {
+public class MainService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -80,13 +78,16 @@ public class UserService {
             throw new BadCredentialsException("비밀번호 불일치");
         }
 
-//        user.setRefreshToken(createRefreshToken(user));
-        String accessToken = tokenProvider.generateToken(user, Duration.ofHours(2));
+        user.setRefreshToken(createRefreshToken(user));
+//        String accessToken = tokenProvider.generateToken(user, Duration.ofHours(2));
 
         return UserLoginResponseDto.builder()
                 .studentId(user.getStudentId())
                 .nickname(user.getNickname())
-                .accessToken(accessToken)
+                .token(TokenDto.builder()
+                        .accessToken(tokenProvider.createToken(user))
+                        .refreshToken(user.getRefreshToken())
+                        .build())
                 .build();
     }
 
@@ -108,71 +109,20 @@ public class UserService {
         return token.getRefreshToken();
     }
 
-    public User findByRefreshToken(String refreshToken) {
-        return userRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new IllegalArgumentException("Unexpected token"));
-    }
+    //실제 메일 전송
+    public String sendEmail(String email) throws MessagingException, UnsupportedEncodingException {
 
-    @Transactional
-    public int sendMail(String mail) {
-        MimeMessage message = CreateMail(mail);
-        javaMailSender.send(message);
+        //메일전송에 필요한 정보 설정
+        MimeMessage emailForm = createEmailForm(email);
+        //실제 메일 전송
+        javaMailSender.send(emailForm);
 
-        return number;
+        return authNum; //인증 코드 반환
     }
 
     public static void createNumber() {
         // (int) Math.random() * (최댓값-최소값+1) + 최소값
         number = (int)(Math.random() * (90000)) + 100000;
-    }
-
-    public MimeMessage CreateMail(String mail) {
-        createNumber();
-        MimeMessage message = javaMailSender.createMimeMessage();
-
-        try {
-            message.setFrom(senderMail);
-            message.setRecipients(MimeMessage.RecipientType.TO, mail);
-            message.setSubject("이메일 인증");
-            String body = "";
-            body += "<h3>" + "요청하신 인증 번호입니다." + "</h3>";
-            body += "<h1>" + number + "<h1>";
-            body += "<h3>" + "감사합니다" + "</h3>";
-            message.setText(body, "UTF-8", "html");
-        } catch (MessagingException e) {
-            e.printStackTrace();
-        }
-
-        return message;
-    }
-
-    // 인증번호 8자리 무작위 생성
-    public void createCode() {
-        Random random = new Random();
-        StringBuffer key = new StringBuffer();
-
-        for(int i=0; i<8; i++) {
-            // 0~2 사이의 값을 랜덤하게 받아와 idx에 집어넣습니다.
-            int idx = random.nextInt(3);
-
-            // 랜덤하게 idx를 받았으면, 그 값을 switchcase를 통해 또 꼬아버립니다.
-            // 숫자와 ASCII 코드를 이용합니다.
-            switch (idx) {
-                case 0 :
-                    // a(97) ~ z(122)
-                    key.append((char) ((int)random.nextInt(26) + 97));
-                    break;
-                case 1:
-                    // A(65) ~ Z(90)
-                    key.append((char) ((int)random.nextInt(26) + 65));
-                    break;
-                case 2:
-                    // 0 ~ 9
-                    key.append(random.nextInt(9));
-                    break;
-            }
-        }
-        authNum = key.toString();
     }
 
     // 메일 양식 작성
@@ -211,47 +161,51 @@ public class UserService {
         return message;
     }
 
-    //실제 메일 전송
-    public String sendEmail(String email) throws MessagingException, UnsupportedEncodingException {
+    // 인증번호 6자리 무작위 생성
+    public void createCode() {
+        Random random = new Random();
+        StringBuffer key = new StringBuffer();
 
-        //메일전송에 필요한 정보 설정
-        MimeMessage emailForm = createEmailForm(email);
-        //실제 메일 전송
-        javaMailSender.send(emailForm);
+        for(int i=0; i<6; i++)
+            key.append(random.nextInt(9));
 
-        return authNum; //인증 코드 반환
+        authNum = key.toString();
     }
 
+    public Token validRefreshToken(User user, String refreshToken) throws Exception {
+        Token token = tokenRepository.findById(user.getStudentId())
+                .orElseThrow(() -> new Exception("만료된 계정입니다. 로그인을 다시 시도하세요"));
+        // 해당유저의 Refresh 토큰 만료 : Redis에 해당 유저의 토큰이 존재하지 않음
+        if (token.getRefreshToken() == null) {
+            return null;
+        } else {
+            // 리프레시 토큰 만료일자가 얼마 남지 않았을 때 만료시간 연장..?
+            if (token.getExpiration() < 10) {
+                token.setExpiration(1000);
+                tokenRepository.save(token);
+            }
 
+            // 토큰이 같은지 비교
+            if (!token.getRefreshToken().equals(refreshToken)) {
+                return null;
+            } else {
+                return token;
+            }
+        }
+    }
+    public TokenDto refreshAccessToken(TokenDto token) throws Exception {
+        Long studentId = tokenProvider.getStudentId(token.getAccessToken());
+        User user = userRepository.findByStudentId(studentId).orElseThrow(() ->
+                new BadCredentialsException("잘못된 계정정보입니다."));
+        Token refreshToken = validRefreshToken(user, token.getRefreshToken());
 
-
-//    public UserResponse login(UserRequest request) throws Exception {
-//        User user = userRepository.findByAccount(request.getAccount()).orElseThrow(() ->
-//                new BadCredentialsException("잘못된 계정정보입니다."));
-//        if(!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-//            throw new BadCredentialsException("잘못된 계정정보입니다.");
-//        }
-//
-//        user.setRefreshToken(createRefreshToken(user));
-//
-//        return UserResponse.builder()
-//                .id(user.getId())
-//                .account(user.getAccount())
-//                .email(user.getEmail())
-//                .name(user.getName())
-//                .roles(user.getRoles())
-//                .token(TokenDto.builder()
-//                        .access_token(jwtProvider.createToken(user.getAccount(), user.getRoles()))
-//                        .refresh_token(user.getRefreshToken())
-//                        .build())
-//                .build();
-//    }
-//
-//    public UserResponse getUser(String account) throws Exception {
-//        User user = userRepository.findByAccount(account)
-//                .orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
-//        return new UserResponse(user);
-//    }
-//
-//
+        if (refreshToken != null) {
+            return TokenDto.builder()
+                    .accessToken(tokenProvider.createToken(user))
+                    .refreshToken(refreshToken.getRefreshToken())
+                    .build();
+        } else {
+            throw new Exception("로그인을 해주세요");
+        }
+    }
 }

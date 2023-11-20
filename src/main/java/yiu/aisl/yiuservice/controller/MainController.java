@@ -13,39 +13,39 @@ import org.springframework.web.bind.annotation.*;
 import yiu.aisl.yiuservice.dto.*;
 import yiu.aisl.yiuservice.repository.UserRepository;
 import yiu.aisl.yiuservice.service.TokenService;
-import yiu.aisl.yiuservice.service.UserService;
+import yiu.aisl.yiuservice.service.MainService;
 
 import java.io.UnsupportedEncodingException;
 
 @RestController
 @RequiredArgsConstructor
 public class MainController {
-    private final UserService userService;
+    private final MainService mainService;
     private final UserRepository userRepository;
     private final TokenService tokenService;
 
     @PostMapping(value = "/join", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Boolean> join(UserJoinRequestDto request) throws Exception {
 //        System.out.println("join: " + request.getStudentId());
-        return new ResponseEntity<Boolean>(userService.join(request), HttpStatus.OK);
+        return new ResponseEntity<Boolean>(mainService.join(request), HttpStatus.OK);
     }
 
     @PostMapping(value = "/mail", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<String> sendMail(SendEmailRequestDTO request) throws MessagingException, UnsupportedEncodingException {
 //        System.out.println("받은 mail: " + request.getEmail());
-        return new ResponseEntity<String>(userService.sendEmail(request.getEmail()), HttpStatus.OK);
+        return new ResponseEntity<String>(mainService.sendEmail(request.getEmail()), HttpStatus.OK);
     }
 
     @PostMapping(value = "/nickcheck", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Boolean> checkNickname (CheckNicknameRequestDTO request) throws Exception {
 //        System.out.println("nickcheck: " + request.getNickname());
-        return new ResponseEntity<Boolean>(userService.checkNickname(request), HttpStatus.OK);
+        return new ResponseEntity<Boolean>(mainService.checkNickname(request), HttpStatus.OK);
     }
 
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<UserLoginResponseDto> login(UserLoginRequestDto request) throws Exception {
 //        System.out.println("login: " + request.getStudentId() + request.getPwd());
-        return new ResponseEntity<UserLoginResponseDto>(userService.login(request), HttpStatus.OK);
+        return new ResponseEntity<UserLoginResponseDto>(mainService.login(request), HttpStatus.OK);
     }
 
     @GetMapping(value = "/logout", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -55,13 +55,13 @@ public class MainController {
     }
 
     @PostMapping(value = "/refresh", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<CreateAccessTokenResponse> createNewAccessToken(CreateAccessTokenRequest request) throws Exception {
-        System.out.println("/refresh - access: " + request.getAccessToken());
-        System.out.println("/refresh - refresh: " + request.getRefreshToken());
+    public ResponseEntity<TokenDto> createNewAccessToken(TokenDto token) throws Exception {
+        System.out.println("/refresh - access: " + token.getAccessToken());
+        System.out.println("/refresh - refresh: " + token.getRefreshToken());
 
 //        return ResponseEntity.status(HttpStatus.CREATED)
 //                .body(new CreateAccessTokenResponse(newAccessToken));
-        return new ResponseEntity<CreateAccessTokenResponse>(tokenService.createNewAccessToken(request), HttpStatus.OK);
+        return new ResponseEntity<>(mainService.refreshAccessToken(token), HttpStatus.OK);
     }
 
 //    public ResponseEntity<Boolean> join(@RequestBody UserJoinRequestDto request) throws Exception {

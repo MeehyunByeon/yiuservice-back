@@ -6,114 +6,92 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Service;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 import yiu.aisl.yiuservice.domain.User;
+import yiu.aisl.yiuservice.service.JpaUserDetailsService;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Set;
 
 @RequiredArgsConstructor
-@Service
+@Component
 public class TokenProvider {
 
     private final JwtProperties jwtProperties;
 
-//    @Value("${jwt.secret.key}")
+    @Value("${jwt.secret.key}")
     private String salt;
 
     private Key secretKey;
 
-    // 만료시간 => 1h => 1000L * 60 * 60
-    private final long exp = 1000L * 60; // 1분
+    // 만료시간 : 30분
+    private final long exp = 500L * 60 * 60;
 
+    private final JpaUserDetailsService userDetailsService;
 
-//    @PostConstruct
-//    protected void init() {
-//        secretKey = Keys.hmacShaKeyFor(salt.getBytes(StandardCharsets.UTF_8));
-//    }
-
-    // JWT 토큰 생성 메서드
-    public String generateToken(User user, Duration expiredAt) {
-        Date now = new Date();
-        return makeToken(new Date(now.getTime() + expiredAt.toMillis()), user);
+    @PostConstruct
+    protected void init() {
+        secretKey = Keys.hmacShaKeyFor(salt.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String makeToken(Date expiry, User user) {
+    // 토큰 생성
+    public String createToken(User user) {
         Date now = new Date();
 
         return Jwts.builder()
-                .setHeaderParam(Header.TYPE, Header.JWT_TYPE) // 헤더 type : JWT
-                .setIssuer(jwtProperties.getIssuer()) // 내용 iss : yiu.aisl(application.properties)
+                .setIssuer(jwtProperties.getIssuer())
                 .setIssuedAt(now)
-                .setExpiration(expiry)
+                .setExpiration(new Date(now.getTime() + exp))
                 .setSubject(user.getNickname())
                 .claim("studentId", user.getStudentId())
-                .signWith(SignatureAlgorithm.HS256, jwtProperties.getSecretKey())
+                .claim("nickname", user.getNickname())
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // JWT 토큰 유효성 검증 메서드
-    public boolean validToken(String token) {
-        try {
-            Jwts.parser()
-                    .setSigningKey(jwtProperties.getSecretKey()) // 비밀겂으로 복호화
-                    .parseClaimsJws(token);
-            return true;
-        } catch (Exception e) { // 복호화 과정에서 에러가 나면 유효하지 않은 토큰
-            return false;
-        }
-
-//        try {
-//            // Bearer 검증
-//            if(!token.substring(0, "BEARER ".length()).equalsIgnoreCase("BEARER ")) {
-//                return false;
-//            }
-//            else {
-//                token = token.split(" ")[1].trim();
-//            }
-//
-//            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
-//
-//            // 만료되었을 시 => false
-//            return !claims.getBody().getExpiration().before(new Date());
-//        } catch (Exception e) {
-//            return false;
-//        }
-    }
-
-     // 토큰 기반으로 인증 정보를 가져오는 메서드
+    // 권한정보 획득
+    // Spring Security 인증과정에서 권한확인을 위한 기능
     public Authentication getAuthentication(String token) {
-        Claims claims = getClaims(token);
-        Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
-
-        return new UsernamePasswordAuthenticationToken(new org.springframework.security.core.userdetails.User(claims.getSubject(), "", authorities), token, authorities);
-//        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getAccount(token));
-//        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        UserDetails userDetails = userDetailsService.loadUserByStudentId(this.getStudentId(token));
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
-    // 토큰 기반으로 학번을 가져오는 메서드
+    // 토큰에 담겨있는 유저 account 획득
     public Long getStudentId(String token) {
         Claims claims = getClaims(token);
-        return claims.get("id", Long.class);
-//        // 만료된 토큰에 대해 parseClaimsJwt를 수행하면 io.jsonwebtoken.ExpiredJwrException이 발생한다.
-//        try {
-//            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
-//        } catch (ExpiredJwtException e) {
-//            e.printStackTrace();
-//            return e.getClaims().getSubject();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
+        return claims.get("studentId", Long.class);
+    }
+
+    // Authorization Header를 통해 인증을 한다.
+    public String resolveToken(HttpServletRequest request) {
+        return request.getHeader("Authorization");
+    }
+
+    // 토큰 검증
+    public boolean validateToken(String token) {
+        try {
+            // Bearer 검증
+            if (!token.substring(0, "BEARER ".length()).equalsIgnoreCase("BEARER ")) {
+                return false;
+            } else {
+                token = token.split(" ")[1].trim();
+            }
+            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build()
+                    .parseClaimsJws(token);
+            // 만료되었을 시 false
+            return !claims.getBody().getExpiration().before(new Date());
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private Claims getClaims(String token) {
@@ -123,28 +101,4 @@ public class TokenProvider {
                 .getBody();
     }
 
-    // Authorization Header를 통해 인증을 한다.
-//    public String resolveToken(HttpServletRequest request) {
-//        return request.getHeader("Authorization");
-//    }
-//
-//    // 토큰 검증
-//    public boolean validateToken(String token) {
-//        try {
-//            // Bearer 검증
-//            if(!token.substring(0, "BEARER ".length()).equalsIgnoreCase("BEARER ")) {
-//                return false;
-//            }
-//            else {
-//                token = token.split(" ")[1].trim();
-//            }
-//
-//            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
-//
-//            // 만료되었을 시 => false
-//            return !claims.getBody().getExpiration().before(new Date());
-//        } catch (Exception e) {
-//            return false;
-//        }
-//    }
 }

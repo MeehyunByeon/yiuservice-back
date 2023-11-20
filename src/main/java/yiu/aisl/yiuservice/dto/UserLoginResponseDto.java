@@ -15,5 +15,5 @@ public class UserLoginResponseDto {
 
     private String nickname;
 
-    private String accessToken;
+    private TokenDto token;
 }

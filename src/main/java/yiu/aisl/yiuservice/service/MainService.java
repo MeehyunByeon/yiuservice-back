@@ -13,10 +13,9 @@ import yiu.aisl.yiuservice.domain.User;
 import yiu.aisl.yiuservice.dto.*;
 import yiu.aisl.yiuservice.repository.TokenRepository;
 import yiu.aisl.yiuservice.repository.UserRepository;
-import yiu.aisl.yiuservice.config.jwt.TokenProvider;
+import yiu.aisl.yiuservice.security.TokenProvider;
 
 import java.io.UnsupportedEncodingException;
-import java.time.Duration;
 import java.util.Random;
 import java.util.UUID;
 

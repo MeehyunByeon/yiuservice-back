@@ -1,4 +1,4 @@
-package yiu.aisl.yiuservice.config.jwt;
+package yiu.aisl.yiuservice.security;
 
 import lombok.Getter;
 import lombok.Setter;

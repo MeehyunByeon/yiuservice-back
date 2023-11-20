@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.Builder;
 import lombok.Getter;
+import yiu.aisl.yiuservice.security.JwtProperties;
 
 import java.time.Duration;
 import java.util.Date;

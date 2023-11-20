@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import yiu.aisl.yiuservice.domain.User;
 import yiu.aisl.yiuservice.repository.UserRepository;
+import yiu.aisl.yiuservice.security.JwtProperties;
+import yiu.aisl.yiuservice.security.TokenProvider;
 
 import java.time.Duration;
 

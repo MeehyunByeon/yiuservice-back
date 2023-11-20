@@ -2,15 +2,10 @@ package yiu.aisl.yiuservice.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import yiu.aisl.yiuservice.config.jwt.TokenProvider;
-import yiu.aisl.yiuservice.domain.Token;
+import yiu.aisl.yiuservice.security.TokenProvider;
 import yiu.aisl.yiuservice.domain.User;
-import yiu.aisl.yiuservice.dto.CreateAccessTokenRequest;
-import yiu.aisl.yiuservice.dto.CreateAccessTokenResponse;
 import yiu.aisl.yiuservice.repository.TokenRepository;
 import yiu.aisl.yiuservice.repository.UserRepository;
-
-import java.time.Duration;
 
 @RequiredArgsConstructor
 @Service

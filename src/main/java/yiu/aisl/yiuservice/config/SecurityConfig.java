@@ -1,13 +1,12 @@
 package yiu.aisl.yiuservice.config;
 
-import yiu.aisl.yiuservice.config.jwt.TokenAuthenticationFilter;
-import yiu.aisl.yiuservice.config.jwt.TokenProvider;
+import yiu.aisl.yiuservice.security.TokenAuthenticationFilter;
+import yiu.aisl.yiuservice.security.TokenProvider;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

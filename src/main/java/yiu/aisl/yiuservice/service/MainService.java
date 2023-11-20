@@ -102,7 +102,7 @@ public class MainService {
                 Token.builder()
                         .studentId(user.getStudentId())
                         .refreshToken(UUID.randomUUID().toString())
-                        .expiration(120) // 2분ㅋ
+                        .expiration(exp) // 2분ㅋ
                         .build()
         );
 //        System.out.println("token" + token.getRefreshToken());
@@ -181,7 +181,7 @@ public class MainService {
         } else {
             // 리프레시 토큰 만료일자가 얼마 남지 않았을 때 만료시간 연장..?
             if (token.getExpiration() < 10) {
-                token.setExpiration(1000);
+                token.setExpiration(1000L);
                 tokenRepository.save(token);
             }
 
@@ -195,6 +195,7 @@ public class MainService {
     }
     public TokenDto refreshAccessToken(TokenDto token) throws Exception {
         Long studentId = tokenProvider.getStudentId(token.getAccessToken());
+        System.out.println("STUDENT-ID" + studentId);
         User user = userRepository.findByStudentId(studentId).orElseThrow(() ->
                 new BadCredentialsException("잘못된 계정정보입니다."));
         Token refreshToken = validRefreshToken(user, token.getRefreshToken());

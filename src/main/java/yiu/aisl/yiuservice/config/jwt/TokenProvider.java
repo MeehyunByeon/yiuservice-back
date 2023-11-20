@@ -94,9 +94,21 @@ public class TokenProvider {
         }
     }
 
+    // JWT 토큰 유효성 검증 메서드
+    public boolean validToken(String token) {
+        try {
+            Jwts.parser()
+                    .setSigningKey(jwtProperties.getSecretKey().getBytes()) // 비밀겂으로 복호화
+                    .parseClaimsJws(token);
+            return true;
+        } catch (Exception e) { // 복호화 과정에서 에러가 나면 유효하지 않은 토큰
+            return false;
+        }
+    }
+
     private Claims getClaims(String token) {
         return Jwts.parser() // 클레임 조회
-                .setSigningKey(jwtProperties.getSecretKey())
+                .setSigningKey(jwtProperties.getSecretKey().getBytes())
                 .parseClaimsJws(token)
                 .getBody();
     }

@@ -24,9 +24,9 @@ public class Token {
     private String refreshToken;
 
     @TimeToLive(unit = TimeUnit.SECONDS)
-    private Integer expiration;
+    private Long expiration;
 
-    public void setExpiration(Integer expiration) {
+    public void setExpiration(Long expiration) {
         this.expiration = expiration;
     }
 }

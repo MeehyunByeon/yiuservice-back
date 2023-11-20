@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.TimeToLive;
 import java.util.concurrent.TimeUnit;
 
 @Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

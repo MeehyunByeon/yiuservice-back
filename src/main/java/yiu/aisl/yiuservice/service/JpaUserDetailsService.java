@@ -1,5 +1,6 @@
 package yiu.aisl.yiuservice.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,7 +24,8 @@ public class JpaUserDetailsService implements UserDetailsService {
     }
 
 //    @Override
-    public UserDetails loadUserByStudentId(Long studentId) throws IllegalArgumentException {
+    @Transactional
+    public UserDetails loadUserByStudentId(Long studentId) throws UsernameNotFoundException {
         User user = userRepository.findByStudentId(studentId).orElseThrow(
                 () -> new UsernameNotFoundException("사용자가 존재하지 않습니다.")
         );

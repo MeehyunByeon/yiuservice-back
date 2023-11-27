@@ -16,7 +16,7 @@ public class JwtFactory {
     private String subject = "yiuaiservicelab@gmail.com";
     private Date issuedAt = new Date();
     private Date expiration = new Date(new Date().getTime() + Duration.ofDays(14).toMillis());
-    private Map<String, Object> claims = emptyMap();
+//    private Map<String, Object> claims = emptyMap();
 
     // 빌더 패턴을 사용해 설정이 필요한 데이터만 선택 설정
     @Builder
@@ -24,7 +24,7 @@ public class JwtFactory {
         this.subject = subject != null ? subject : this.subject;
         this.issuedAt = issuedAt != null ? issuedAt : this.issuedAt;
         this.expiration = expiration != null ? expiration : this.expiration;
-        this.claims = claims != null ? expiration : this.expiration;
+//        this.claims = claims != null ? expiration : this.expiration;
     }
 
     public static JwtFactory withDefaultValues() {
@@ -39,7 +39,7 @@ public class JwtFactory {
                 .setIssuer(jwtProperties.getIssuer())
                 .setIssuedAt(issuedAt)
                 .setExpiration(expiration)
-                .addClaims(claims)
+//                .addClaims(claims)
                 .signWith(SignatureAlgorithm.HS256, jwtProperties.getSecretKey())
                 .compact();
     }

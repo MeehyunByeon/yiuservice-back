@@ -10,6 +10,8 @@ import java.util.Collections;
 // UserDetails를 사용하면 아래의 메소드명을 변경하면 안됨
 public class CustomUserDetails implements UserDetails {
     private final User user;
+
+
     public CustomUserDetails(User user) {
         this.user = user;
     }

@@ -26,7 +26,7 @@ public class Push {
     private Byte type;
 
     @Column
-    private Integer id;
+    private Long id;
 
     @Column(columnDefinition = "TEXT")
     private String contents;

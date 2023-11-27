@@ -64,7 +64,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 // 회원가입, 로그인은 모두 승인
-                                .requestMatchers("/login", "/join", "/nickcheck", "/mail", "/refresh", "/token").permitAll()
+                                .requestMatchers("/login", "/join", "/nickcheck", "/mail", "/refresh", "/token", "/api/jwt/info/**").permitAll()
+                                .requestMatchers("/delivery/**").authenticated()
                                 .anyRequest().authenticated()
                 )
                 // JWT 인증 필터 적용

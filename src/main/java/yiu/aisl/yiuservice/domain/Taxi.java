@@ -48,13 +48,13 @@ public class Taxi {
     private String start;
 
     @Column
-    private Integer startCode;
+    private Long startCode;
 
     @Column(length = 100)
     private String end;
 
     @Column
-    private Integer endCode;
+    private Long endCode;
 
     @CreationTimestamp
     @Column

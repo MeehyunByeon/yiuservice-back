@@ -16,6 +16,7 @@ import yiu.aisl.yiuservice.repository.UserRepository;
 import yiu.aisl.yiuservice.security.TokenProvider;
 
 import java.io.UnsupportedEncodingException;
+import java.time.Duration;
 import java.util.Random;
 import java.util.UUID;
 
@@ -35,7 +36,8 @@ public class MainService {
     private static int number;
     private static String authNum;
 
-    private final long exp = 1000L * 60 * 60 * 24 * 14; // 14일
+//    private final long exp = 1000L * 60 * 60 * 24 * 14; // 14일
+    private long exp_refreshToken = Duration.ofDays(14).toMillis(); // 만료시간 2주
 
     // <API> 회원가입
     @Transactional
@@ -101,7 +103,7 @@ public class MainService {
                 Token.builder()
                         .studentId(user.getStudentId())
                         .refreshToken(UUID.randomUUID().toString())
-                        .expiration(exp) // 2분ㅋ
+                        .expiration(exp_refreshToken)
                         .build()
         );
 //        System.out.println("token" + token.getRefreshToken());

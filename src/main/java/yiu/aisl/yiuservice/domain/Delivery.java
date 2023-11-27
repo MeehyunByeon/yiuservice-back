@@ -38,13 +38,13 @@ public class Delivery {
     private Byte state;
 
     @Column
-    private Integer food;
+    private Long food;
 
     @Column(columnDefinition = "TEXT")
     private String link;
 
     @Column
-    private Integer location;
+    private Long location;
 
     @CreationTimestamp
     @Column

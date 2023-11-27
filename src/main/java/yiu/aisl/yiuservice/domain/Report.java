@@ -34,7 +34,7 @@ public class Report {
     private Byte type;
 
     @Column
-    private Integer id;
+    private Long id;
 
     @CreationTimestamp
     @Column

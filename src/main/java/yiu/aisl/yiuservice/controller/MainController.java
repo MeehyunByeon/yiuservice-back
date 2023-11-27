@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.web.bind.annotation.*;
 import yiu.aisl.yiuservice.dto.*;
 import yiu.aisl.yiuservice.repository.UserRepository;
+import yiu.aisl.yiuservice.security.TokenProvider;
 import yiu.aisl.yiuservice.service.TokenService;
 import yiu.aisl.yiuservice.service.MainService;
 
@@ -23,6 +24,7 @@ public class MainController {
     private final MainService mainService;
     private final UserRepository userRepository;
     private final TokenService tokenService;
+    private final TokenProvider tokenProvider;
 
     @PostMapping(value = "/join", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Boolean> join(UserJoinRequestDto request) throws Exception {
@@ -62,6 +64,12 @@ public class MainController {
 //        return ResponseEntity.status(HttpStatus.CREATED)
 //                .body(new CreateAccessTokenResponse(newAccessToken));
         return new ResponseEntity<>(mainService.refreshAccessToken(token), HttpStatus.OK);
+    }
+
+    @GetMapping("/api/jwt/info/{token}")
+    public TokenProvider.TokenInfo jwtInfo(@PathVariable String token) {
+        TokenProvider.TokenInfo tokenInfo = tokenProvider.getTokenInfo(token);
+        return tokenInfo;
     }
 
 //    public ResponseEntity<Boolean> join(@RequestBody UserJoinRequestDto request) throws Exception {

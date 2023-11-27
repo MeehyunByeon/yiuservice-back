@@ -142,7 +142,7 @@ public class MainService {
         // 메일 내용 설정
         String msgOfEmail="";
         msgOfEmail += "<div style='margin:20px;'>";
-        msgOfEmail += "<h1> 안녕하세요 용인대학교 AI Service LAB 입니다. </h1>";
+        msgOfEmail += "<h1> 안녕하세요 용인대학교 YMate 입니다. </h1>";
         msgOfEmail += "<br>";
         msgOfEmail += "<p>아래 코드를 입력해주세요<p>";
         msgOfEmail += "<br>";

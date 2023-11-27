@@ -9,4 +9,6 @@ import java.util.Optional;
 
 @Transactional
 public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
+
+    Optional<Delivery> findBydId(Long dId);
 }

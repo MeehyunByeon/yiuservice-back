@@ -1,5 +1,6 @@
 package yiu.aisl.yiuservice.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.apache.ibatis.annotations.Update;
@@ -28,6 +29,7 @@ public class User {
     private String nickname;
 
     @Column(nullable = false, length = 255)
+    @JsonIgnore
     private String pwd;
 
     @Column(columnDefinition = "TEXT")

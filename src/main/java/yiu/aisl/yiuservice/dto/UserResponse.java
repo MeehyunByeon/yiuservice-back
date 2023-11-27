@@ -23,4 +23,6 @@ public class UserResponse {
         this.studentId = user.getStudentId();
         this.nickname = user.getNickname();
     }
+
+
 }

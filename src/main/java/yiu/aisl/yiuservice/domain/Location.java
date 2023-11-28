@@ -6,7 +6,7 @@ import jakarta.persistence.Id;
 import lombok.*;
 
 @Entity
-@Getter
+@Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

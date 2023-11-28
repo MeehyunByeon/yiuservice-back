@@ -10,6 +10,21 @@ public class DeliveryRequest {
 
     @Getter
     @Setter
+    public static class dIdDTO {
+        private Long dId;
+
+    }
+
+    @Getter
+    @Setter
+    public static class dcIdDTO {
+        private Long dcId;
+
+    }
+
+
+    @Getter
+    @Setter
     public static class DetailDTO {
         private Long dId;
 
@@ -61,13 +76,6 @@ public class DeliveryRequest {
 
     @Getter
     @Setter
-    public static class DeleteDTO {
-        private Long dId;
-
-    }
-
-    @Getter
-    @Setter
     public static class ApplyDTO {
 
         private Long dId;
@@ -80,24 +88,5 @@ public class DeliveryRequest {
 
         private Byte state = 1;
     }
-
-    @Getter
-    @Setter
-    public static class CancelDTO {
-        private Long dcId;
-    }
-
-    @Getter
-    @Setter
-    public static class AcceptDTO {
-        private Long dcId;
-    }
-
-    @Getter
-    @Setter
-    public static class rejectDTO {
-        private Long dcId;
-    }
-
 
 }

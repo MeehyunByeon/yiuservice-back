@@ -111,11 +111,13 @@ public class DeliveryService {
 
     // 배달모집글 삭제 [writer]
     @Transactional
-    public Boolean delete(Long studentId, DeliveryRequest.DeleteDTO request) throws Exception{
+    public Boolean delete(Long studentId, DeliveryRequest.dIdDTO request) throws Exception{
 
         Optional<Delivery> optDelivery = deliveryRepository.findBydId(request.getDId());
 
         User user = findByStudentId(studentId);
+
+        Byte deletedState = 0;
 
         // 1. if 신청이 없으면 삭제 가능 => 204 + state = 0
         // 2. if 신청이 있으면
@@ -126,7 +128,34 @@ public class DeliveryService {
                 return false;
             }
             else {
-                deliveryRepository.delete(optDelivery.get());
+                Delivery delivery = optDelivery.get();
+                delivery.setState(deletedState);
+                deliveryRepository.save(delivery);
+                return true;
+            }
+        }
+        catch (Exception e) {
+            throw new Exception("잘못된 요청입니다.");
+        }
+    }
+
+    // 배달모집글 마감 [writer]
+    @Transactional
+    public Boolean finish(Long studentId, DeliveryRequest.dIdDTO request) throws Exception{
+
+        Optional<Delivery> optDelivery = deliveryRepository.findBydId(request.getDId());
+
+        User user = findByStudentId(studentId);
+        Byte finishState = 2;
+
+        try {
+            if(optDelivery.isEmpty() || !optDelivery.get().getUser().equals(user)) {
+                return false;
+            }
+            else {
+                Delivery delivery = optDelivery.get();
+                delivery.setState(finishState);
+                deliveryRepository.save(delivery);
                 return true;
             }
         }
@@ -160,10 +189,80 @@ public class DeliveryService {
     }
 
     // 배달모집 신청 취소 [applicant]
+    public Boolean cancel(Long studentId, DeliveryRequest.dcIdDTO request) throws Exception {
+        Optional<Comment_Delivery> optComment_Delivery = comment_deliveryRepository.findByDcId(request.getDcId());
+
+        User user = findByStudentId(studentId);
+
+        Byte cancelState = 0;
+
+        try {
+            if(optComment_Delivery.isEmpty() || !optComment_Delivery.get().getUser().equals(user)) {
+                return false;
+            }
+            else {
+                Comment_Delivery comment_delivery = optComment_Delivery.get();
+                comment_delivery.setState(cancelState);
+                comment_deliveryRepository.save(comment_delivery);
+                return true;
+            }
+        }
+        catch (Exception e) {
+            throw new Exception("잘못된 요청입니다.");
+        }
+    }
 
     // 배달모집 신청 수락 [writer]
+    public Boolean accept(Long studentId, DeliveryRequest.dcIdDTO request) throws Exception {
+        Optional<Comment_Delivery> optComment_Delivery = comment_deliveryRepository.findByDcId(request.getDcId());
+
+        Delivery delivery = findByDId(optComment_Delivery.get().getDelivery().getDId());
+
+        User user = findByStudentId(studentId);
+
+        Byte acceptState = 2;
+
+        try {
+            if(optComment_Delivery.isEmpty() || !delivery.getUser().equals(user)) {
+                return false;
+            }
+            else {
+                Comment_Delivery comment_delivery = optComment_Delivery.get();
+                comment_delivery.setState(acceptState);
+                comment_deliveryRepository.save(comment_delivery);
+                return true;
+            }
+        }
+        catch (Exception e) {
+            throw new Exception("잘못된 요청입니다.");
+        }
+    }
 
     // 배달모집 신청 거부 [writer]
+    public Boolean reject(Long studentId, DeliveryRequest.dcIdDTO request) throws Exception {
+        Optional<Comment_Delivery> optComment_Delivery = comment_deliveryRepository.findByDcId(request.getDcId());
+
+        Delivery delivery = findByDId(optComment_Delivery.get().getDelivery().getDId());
+
+        User user = findByStudentId(studentId);
+
+        Byte rejectState = 3;
+
+        try {
+            if(optComment_Delivery.isEmpty() || !delivery.getUser().equals(user)) {
+                return false;
+            }
+            else {
+                Comment_Delivery comment_delivery = optComment_Delivery.get();
+                comment_delivery.setState(rejectState);
+                comment_deliveryRepository.save(comment_delivery);
+                return true;
+            }
+        }
+        catch (Exception e) {
+            throw new Exception("잘못된 요청입니다.");
+        }
+    }
 
     // 학번으로 유저의 정보를 가져오는 메서드
     public User findByStudentId(Long studentId) {
@@ -171,9 +270,15 @@ public class DeliveryService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저"));
     }
 
+    // dId로 배달 모집 글 정보를 가져오는 메서드
     public Delivery findByDId(Long dId) {
         return deliveryRepository.findBydId(dId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 글"));
     }
 
+    // dcId로 배달 신청 정보를 가져오는 메서드
+    public Comment_Delivery findByDcId(Long dcId) {
+        return comment_deliveryRepository.findByDcId(dcId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신청"));
+    }
 }

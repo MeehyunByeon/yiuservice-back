@@ -54,8 +54,14 @@ public class DeliveryController {
 
     // 배달모집글 삭제 [writer]
     @PostMapping(value = "/delete", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<Boolean> delete(@AuthenticationPrincipal CustomUserDetails user, DeliveryRequest.DeleteDTO request) throws Exception {
+    public ResponseEntity<Boolean> delete(@AuthenticationPrincipal CustomUserDetails user, DeliveryRequest.dIdDTO request) throws Exception {
         return new ResponseEntity<Boolean>(deliveryService.delete(user.getStudentId(), request), HttpStatus.OK);
+    }
+
+    // 배달모집글 마감 [writer]
+    @PostMapping(value = "/finish", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Boolean> finish(@AuthenticationPrincipal CustomUserDetails user, DeliveryRequest.dIdDTO request) throws Exception {
+        return new ResponseEntity<Boolean>(deliveryService.finish(user.getStudentId(), request), HttpStatus.OK);
     }
 
     // 배달모집 신청 [applicant]
@@ -65,8 +71,20 @@ public class DeliveryController {
     }
 
     // 배달모집 신청 취소 [applicant]
+    @PostMapping(value = "/cancel", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Boolean> cancel(@AuthenticationPrincipal CustomUserDetails user, DeliveryRequest.dcIdDTO request) throws Exception {
+        return new ResponseEntity<Boolean>(deliveryService.cancel(user.getStudentId(), request), HttpStatus.OK);
+    }
 
     // 배달모집 신청 수락 [writer]
+    @PostMapping(value = "/accept", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Boolean> accept(@AuthenticationPrincipal CustomUserDetails user, DeliveryRequest.dcIdDTO request) throws Exception {
+        return new ResponseEntity<Boolean>(deliveryService.accept(user.getStudentId(), request), HttpStatus.OK);
+    }
 
     // 배달모집 신청 거부 [writer]
+    @PostMapping(value = "/reject", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Boolean> reject(@AuthenticationPrincipal CustomUserDetails user, DeliveryRequest.dcIdDTO request) throws Exception {
+        return new ResponseEntity<Boolean>(deliveryService.reject(user.getStudentId(), request), HttpStatus.OK);
+    }
 }

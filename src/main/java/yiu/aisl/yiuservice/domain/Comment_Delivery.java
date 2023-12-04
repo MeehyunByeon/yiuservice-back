@@ -19,7 +19,7 @@ public class Comment_Delivery {
     @Column(unique = true)
     private Long dcId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "d_id", nullable = false)
     private Delivery delivery;
 

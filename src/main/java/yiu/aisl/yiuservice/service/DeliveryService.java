@@ -40,12 +40,16 @@ public class DeliveryService {
 
     // 배달모집글 상세조회 [all]
     public DeliveryResponse getDetail(DeliveryRequest.DetailDTO request) throws Exception{
-        Delivery delivery = deliveryRepository.findBydId(request.getDId()).orElseThrow(() -> {
-            return new IllegalArgumentException("해당 글을 찾을 수 없습니다.");
-        });
+        try {
+            Delivery delivery = deliveryRepository.findBydId(request.getDId()).orElseThrow(() -> {
+                return new IllegalArgumentException("해당 글을 찾을 수 없습니다.");
+            });
+            DeliveryResponse response = DeliveryResponse.GetDeliveryDTO(delivery);
+            return response;
+        } catch (Exception e) {
+            throw new Exception("잘못된 요청입니다.");
+        }
 
-        DeliveryResponse response = DeliveryResponse.GetDeliveryDTO(delivery);
-        return response;
     }
 
 

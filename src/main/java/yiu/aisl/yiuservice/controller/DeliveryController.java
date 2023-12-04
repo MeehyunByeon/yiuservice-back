@@ -43,6 +43,7 @@ public class DeliveryController {
     // 배달모집글 작성 [writer]
     @PostMapping(value = "/create", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Boolean> create(@AuthenticationPrincipal CustomUserDetails user, DeliveryRequest.CreateDTO request) throws Exception {
+
         return new ResponseEntity<Boolean>(deliveryService.create(user.getStudentId(), request), HttpStatus.OK);
     }
 

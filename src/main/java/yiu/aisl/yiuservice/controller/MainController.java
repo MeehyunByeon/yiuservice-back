@@ -17,6 +17,7 @@ import yiu.aisl.yiuservice.service.TokenService;
 import yiu.aisl.yiuservice.service.MainService;
 
 import java.io.UnsupportedEncodingException;
+import java.util.DuplicateFormatFlagsException;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,6 +26,11 @@ public class MainController {
     private final UserRepository userRepository;
     private final TokenService tokenService;
     private final TokenProvider tokenProvider;
+
+    @GetMapping("/test")
+    public String test() {
+        throw new DuplicateFormatFlagsException("Dddd");
+    }
 
     @PostMapping(value = "/join", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Boolean> join(UserJoinRequestDto request) throws Exception {

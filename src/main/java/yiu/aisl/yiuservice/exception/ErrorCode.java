@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
     // 잘못된 요청
-    INSUFFICIENT_DATA(HttpStatus.valueOf(401), ResultMessage.INSUFFICIENT_DATA),
+    INSUFFICIENT_DATA(HttpStatus.valueOf(400), ResultMessage.INSUFFICIENT_DATA),
 
     UNAUTHORIZED(HttpStatus.valueOf(401), ResultMessage.UNAUTHORIZED),
     NO_AUTH(HttpStatus.valueOf(401), ResultMessage.NO_AUTH),

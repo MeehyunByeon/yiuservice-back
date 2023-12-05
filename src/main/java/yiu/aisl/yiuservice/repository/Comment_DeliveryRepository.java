@@ -12,4 +12,6 @@ import java.util.Optional;
 public interface Comment_DeliveryRepository extends JpaRepository<Comment_Delivery, Long> {
 
     Optional<Comment_Delivery> findByDcId(Long dcId);
+
+    Optional<Comment_Delivery> findByUserAndDelivery(User user, Delivery delivery);
 }

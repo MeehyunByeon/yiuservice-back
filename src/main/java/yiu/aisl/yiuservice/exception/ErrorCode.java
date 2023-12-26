@@ -9,41 +9,42 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
     // 잘못된 요청
-    INSUFFICIENT_DATA(HttpStatus.valueOf(400), ResultMessage.INSUFFICIENT_DATA),
+    INSUFFICIENT_DATA(400, ResultMessage.INSUFFICIENT_DATA),
 
-    UNAUTHORIZED(HttpStatus.valueOf(401), ResultMessage.UNAUTHORIZED),
-    NO_AUTH(HttpStatus.valueOf(401), ResultMessage.NO_AUTH),
-    ACCESS_NO_AUTH(HttpStatus.valueOf(401), ResultMessage.ACCESS_NO_AUTH),
+    UNAUTHORIZED(401, ResultMessage.UNAUTHORIZED),
+    NO_AUTH(401, ResultMessage.NO_AUTH),
+    ACCESS_NO_AUTH(401, ResultMessage.ACCESS_NO_AUTH),
 
-    ACCESS_TOKEN_EXPIRED(HttpStatus.valueOf(403), ResultMessage.ACCESS_TOKEN_EXPIRED),
-    REFRESH_TOKEN_EXPIRED(HttpStatus.valueOf(403), ResultMessage.REFRESH_TOKEN_EXPIRED),
+    ACCESS_TOKEN_EXPIRED(403,ResultMessage.ACCESS_TOKEN_EXPIRED),
+    REFRESH_TOKEN_EXPIRED(403, ResultMessage.REFRESH_TOKEN_EXPIRED),
 
-    VALID_NOT_STUDENT_ID(HttpStatus.valueOf(401), ResultMessage.VALID_NOT_STUDENT_ID),
-    VALID_NOT_PWD(HttpStatus.valueOf(401), ResultMessage.VALID_NOT_PWD),
-    MEMBER_NOT_EXIST(HttpStatus.valueOf(401), ResultMessage.MEMBER_NOT_EXIST),
-    LOGIN_REQUIRED(HttpStatus.valueOf(401), ResultMessage.LOGIN_REQUIRED),
+    VALID_NOT_STUDENT_ID(401, ResultMessage.VALID_NOT_STUDENT_ID),
+    VALID_NOT_PWD(401, ResultMessage.VALID_NOT_PWD),
+    MEMBER_NOT_EXIST(401, ResultMessage.MEMBER_NOT_EXIST),
+    LOGIN_REQUIRED(401, ResultMessage.LOGIN_REQUIRED),
 
     // 데이터를 찾을 수 없음
-    NOT_EXIST(HttpStatus.valueOf(404), ResultMessage.NOT_EXIST),
+    NOT_EXIST(404, ResultMessage.NOT_EXIST),
 
     // 데이터 충돌
-    CONFLICT(HttpStatus.valueOf(409), ResultMessage.CONFLICT),
+    CONFLICT(409, ResultMessage.CONFLICT),
     // 데이터 중복
-    DUPLICATE(HttpStatus.valueOf(409), ResultMessage.DUPLICATE),
+    DUPLICATE(409, ResultMessage.DUPLICATE),
 
     // 서버 오류
-    INTERNAL_SERVER_ERROR(HttpStatus.valueOf(500), ResultMessage.INTERNAL_SERVER_ERROR)
+    INTERNAL_SERVER_ERROR(500, ResultMessage.INTERNAL_SERVER_ERROR)
     ;
 
-    private final HttpStatus status;
+
+    private final int status;
     private final String message;
 
-    ErrorCode(HttpStatus status, String message) {
+    ErrorCode(int status, String message) {
         this.status = status;
         this.message = message;
     }
 
-    public HttpStatus getStatus() {
+    public int getStatus() {
         return status;
     }
 

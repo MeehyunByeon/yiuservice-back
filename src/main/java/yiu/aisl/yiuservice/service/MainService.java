@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import yiu.aisl.yiuservice.domain.Token;
 import yiu.aisl.yiuservice.domain.User;
 import yiu.aisl.yiuservice.dto.*;
+import yiu.aisl.yiuservice.exception.CustomException;
+import yiu.aisl.yiuservice.exception.ErrorCode;
 import yiu.aisl.yiuservice.repository.TokenRepository;
 import yiu.aisl.yiuservice.repository.UserRepository;
 import yiu.aisl.yiuservice.security.TokenProvider;
@@ -42,10 +44,15 @@ public class MainService {
     // <API> 회원가입
     @Transactional
     public Boolean join(UserJoinRequestDto request) throws Exception {
-        if (userRepository.findByStudentId(request.getStudentId()).isPresent()) {
-            throw new Exception("이미 존재하는 학번입니다.");
-        }
+        // 400 - 데이터 없음
+        if(request.getStudentId() == null || request.getNickname() == null || request.getPwd() == null)
+            throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
+        // 409 - 학번 or 닉네임 이미 존재
+        if (userRepository.findByStudentId(request.getStudentId()).isPresent() || userRepository.findByNickname(request.getNickname()).isPresent())
+            throw new CustomException(ErrorCode.DUPLICATE);
+
+        // 데이터 저장
         try {
             User user = User.builder()
                     .studentId(request.getStudentId())
@@ -55,47 +62,75 @@ public class MainService {
             userRepository.save(user);
         }
         catch (Exception e) {
-//            System.out.println(e.getMessage());
-            throw new Exception("잘못된 요청입니다.");
+            throw new Exception("서버 오류");
         }
         return true;
     }
 
     // <API> 닉네임 중복 확인
     @Transactional
-    public Boolean checkNickname(CheckNicknameRequestDTO request) {
+    public Boolean checkNickname(CheckNicknameRequestDTO request) throws Exception {
+        // 400 - 데이터 없음
+        System.out.println("닉네임 중복 확인: " + request.getNickname());
+        if(request.getNickname() == null) throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
+
+        // 409 - 닉네임 존재 => 중복
         if (userRepository.findByNickname(request.getNickname()).isPresent()) {
-            return false;
+            throw new CustomException(ErrorCode.DUPLICATE);
         }
+
+//        try {
+//            // 409 - 닉네임 존재 => 중복
+//            if (userRepository.findByNickname(request.getNickname()).isPresent()) {
+//                throw new CustomException(ErrorCode.DUPLICATE);
+//            }
+//        }
+//        catch (Exception e) {
+//            throw new Exception("서버 오류");
+//        }
+
         return true;
     }
 
     // <API> 로그인
     @Transactional
-    public UserLoginResponseDto login(UserLoginRequestDto request) {
-        User user = userRepository.findByStudentId(request.getStudentId()).orElseThrow(() -> new BadCredentialsException("존재하지 않는 계정"));
+    public UserLoginResponseDto login(UserLoginRequestDto request) throws Exception {
+        // 400 - 데이터 없음
+        if(request.getStudentId() == null ||  request.getPwd() == null)
+            throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
+        // 401 - 유저 존재 확인
+        User user = userRepository.findByStudentId(request.getStudentId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));
+
+        // 401 - 비밀번호 일치 확인
         if(!passwordEncoder.matches(request.getPwd(), user.getPwd())) {
-            throw new BadCredentialsException("비밀번호 불일치");
+            throw new CustomException(ErrorCode.VALID_NOT_PWD);
         }
 
+        // 리프레시 토큰 생성
         user.setRefreshToken(createRefreshToken(user));
 //        String accessToken = tokenProvider.generateToken(user, Duration.ofHours(2));
 
-        return UserLoginResponseDto.builder()
-                .studentId(user.getStudentId())
-                .nickname(user.getNickname())
-                .token(TokenDto.builder()
-                        .accessToken(tokenProvider.createToken(user))
-                        .refreshToken(user.getRefreshToken())
-                        .build())
-                .build();
+        try {
+            UserLoginResponseDto response = UserLoginResponseDto.builder()
+                    .studentId(user.getStudentId())
+                    .nickname(user.getNickname())
+                    .token(TokenDto.builder()
+                            .accessToken(tokenProvider.createToken(user))
+                            .refreshToken(user.getRefreshToken())
+                            .build())
+                    .build();
+            return response;
+        }
+        catch (Exception e) {
+            throw new Exception("서버 오류");
+        }
     }
 
     // 학번으로 유저의 정보를 가져오는 메서드
     public User findByStudentId(Long studentId) {
         return userRepository.findByStudentId(studentId)
-                .orElseThrow(() -> new IllegalArgumentException("Unexpected user"));
+                .orElseThrow(() -> new CustomException(ErrorCode.VALID_NOT_STUDENT_ID));
     }
 
     public String createRefreshToken(User user) {
@@ -113,8 +148,12 @@ public class MainService {
     //실제 메일 전송
     public String sendEmail(String email) throws MessagingException, UnsupportedEncodingException {
 
+        System.out.println("이메일: " + email);
+        // 400 - 데이터 없음
+        if(email == null) throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
+
         //메일전송에 필요한 정보 설정
-        MimeMessage emailForm = createEmailForm(email);
+        MimeMessage emailForm = createEmailForm(email+"@yiu.ac.kr");
         //실제 메일 전송
         javaMailSender.send(emailForm);
 
@@ -129,10 +168,11 @@ public class MainService {
     // 메일 양식 작성
     public MimeMessage createEmailForm(String email) throws MessagingException, UnsupportedEncodingException {
         // 코드를 생성합니다.
+        System.out.println("emial: " + email);
         createCode();
-        String setFrom = "bmh2038@naver.com";	// 보내는 사람
+        String setFrom = "yiuaiservicelab@gmail.com";	// 보내는 사람
         String toEmail = email;		// 받는 사람(값 받아옵니다.)
-        String title = "회원가입 인증번호 테스트";		// 메일 제목
+        String title = "YMate 회원가입 인증번호";		// 메일 제목
 
         MimeMessage message = javaMailSender.createMimeMessage();
 

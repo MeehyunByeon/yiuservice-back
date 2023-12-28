@@ -28,7 +28,7 @@ public class DeliveryController {
     private final UserRepository userRepository;
     private final TokenService tokenService;
 
-    // 전체 배달모집글 조회 [all]
+    // 전체 모집글 조회 [all]
     @GetMapping
     public ResponseEntity<List> getList() throws Exception {
         return new ResponseEntity<List>(deliveryService.getList(), HttpStatus.OK);

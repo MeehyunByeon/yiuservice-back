@@ -23,14 +23,14 @@ public class Taxi {
     @JoinColumn(name = "student_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 50)
     private String title;
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String contents;
 
     @CreationTimestamp
-    @Column
+    @Column(nullable = false)
     private LocalDateTime due;
 
     @Column
@@ -41,7 +41,7 @@ public class Taxi {
     @ColumnDefault("1")
     private Integer current;
 
-    @Column
+    @Column(nullable = false)
     private Integer max;
 
     @Column(length = 100)

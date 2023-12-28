@@ -25,8 +25,8 @@ public class ExceptionController {
 
     @ExceptionHandler({Exception.class})
     protected ResponseEntity handleServerException(Exception ex) {
-        ErrorResponse response = new ErrorResponse(ErrorCode.INTERNAL_SERVER_ERROR);
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        ErrorResponse response = new ErrorResponse(ErrorCode.INSUFFICIENT_DATA);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
 //    @ExceptionHandler({Exception.class})

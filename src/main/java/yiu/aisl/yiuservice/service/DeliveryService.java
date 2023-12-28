@@ -10,6 +10,8 @@ import yiu.aisl.yiuservice.domain.Delivery;
 import yiu.aisl.yiuservice.domain.User;
 import yiu.aisl.yiuservice.dto.DeliveryRequest;
 import yiu.aisl.yiuservice.dto.DeliveryResponse;
+import yiu.aisl.yiuservice.exception.CustomException;
+import yiu.aisl.yiuservice.exception.ErrorCode;
 import yiu.aisl.yiuservice.repository.Comment_DeliveryRepository;
 import yiu.aisl.yiuservice.repository.DeliveryRepository;
 import yiu.aisl.yiuservice.repository.UserRepository;
@@ -63,6 +65,10 @@ public class DeliveryService {
     @Transactional
     public Boolean create(Long studentId, DeliveryRequest.CreateDTO request) throws Exception{
 
+        // 400 - 데이터 없음
+        if(request.getTitle() == null || request.getContents() == null || request.getDue() == null)
+            throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
+
         User user = findByStudentId(studentId);
 
         try {
@@ -79,7 +85,7 @@ public class DeliveryService {
             deliveryRepository.save(delivery);
         }
         catch (Exception e) {
-            throw new Exception("데이터가 부족합니다.");
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
         return true;
     }

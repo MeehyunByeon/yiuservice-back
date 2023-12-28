@@ -96,7 +96,7 @@ public class MainService {
     @Transactional
     public UserLoginResponseDto login(UserLoginRequestDto request) throws Exception {
         // 400 - 데이터 없음
-        if(request.getStudentId() == null ||  request.getPwd() == null)
+        if(request.getStudentId() == null || request.getPwd() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
         // 401 - 유저 존재 확인
@@ -123,7 +123,7 @@ public class MainService {
             return response;
         }
         catch (Exception e) {
-            throw new Exception("서버 오류");
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -152,6 +152,10 @@ public class MainService {
         // 400 - 데이터 없음
         if(email == null) throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
+        // 409 - 해당 학번의 회원 존재 => 중복
+        if (userRepository.findByStudentId(Long.parseLong(email)).isPresent())
+            throw new CustomException(ErrorCode.DUPLICATE);
+
         //메일전송에 필요한 정보 설정
         MimeMessage emailForm = createEmailForm(email+"@yiu.ac.kr");
         //실제 메일 전송

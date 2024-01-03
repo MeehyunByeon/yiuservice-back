@@ -5,8 +5,11 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import yiu.aisl.yiuservice.domain.state.PostState;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -33,9 +36,8 @@ public class Taxi {
     @Column(nullable = false)
     private LocalDateTime due;
 
-    @Column
-    @ColumnDefault("1")
-    private Byte state;
+    @Column(nullable = false)
+    private PostState state;
 
     @Column
     @ColumnDefault("1")
@@ -63,4 +65,7 @@ public class Taxi {
     @UpdateTimestamp
     @Column
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "taxi") // 댓글과의 관계 설정
+    private List<Comment_Taxi> comments = new ArrayList<>();
 }

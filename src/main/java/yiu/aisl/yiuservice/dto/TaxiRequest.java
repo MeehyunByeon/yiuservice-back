@@ -8,6 +8,8 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.format.annotation.DateTimeFormat;
+import yiu.aisl.yiuservice.domain.state.ApplyState;
+import yiu.aisl.yiuservice.domain.state.PostState;
 
 import java.time.LocalDateTime;
 
@@ -61,7 +63,7 @@ public class TaxiRequest {
 
         private Integer max;
 
-        private Byte state = 1;
+        private PostState state = PostState.ACTIVE;
 
     }
 
@@ -96,7 +98,7 @@ public class TaxiRequest {
 
         private Integer max;
 
-        private Byte state;
+        private PostState state;
     }
 
     @Getter
@@ -113,6 +115,6 @@ public class TaxiRequest {
 
         private Integer number;
 
-        private Byte state = 1;
+        private ApplyState state = ApplyState.WAITING;
     }
 }

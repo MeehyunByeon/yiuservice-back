@@ -3,6 +3,8 @@ package yiu.aisl.yiuservice.dto;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
+import yiu.aisl.yiuservice.domain.state.ApplyState;
+import yiu.aisl.yiuservice.domain.state.PostState;
 
 import java.time.LocalDateTime;
 
@@ -51,7 +53,7 @@ public class DeliveryRequest {
 
         private String link;
 
-        private Byte state = 1;
+        private PostState state = PostState.ACTIVE;
     }
 
     @Getter
@@ -75,7 +77,7 @@ public class DeliveryRequest {
 
         private String link;
 
-        private Byte state;
+        private PostState state;
     }
 
     @Getter
@@ -90,7 +92,7 @@ public class DeliveryRequest {
 
         private String details;
 
-        private Byte state = 1;
+        private ApplyState state = ApplyState.WAITING;
     }
 
 }

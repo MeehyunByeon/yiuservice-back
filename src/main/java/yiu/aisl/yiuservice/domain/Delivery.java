@@ -5,8 +5,11 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import yiu.aisl.yiuservice.domain.state.PostState;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -34,8 +37,7 @@ public class Delivery {
     private LocalDateTime due;
 
     @Column(nullable = false)
-    @ColumnDefault("1")
-    private Byte state;
+    private PostState state;
 
     @Column
     private Long food;
@@ -53,4 +55,7 @@ public class Delivery {
     @UpdateTimestamp
     @Column
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "delivery") // 댓글과의 관계 설정
+    private List<Comment_Delivery> comments = new ArrayList<>();
 }

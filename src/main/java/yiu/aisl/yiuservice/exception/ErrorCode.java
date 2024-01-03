@@ -13,7 +13,9 @@ public enum ErrorCode {
 
     UNAUTHORIZED(401, ResultMessage.UNAUTHORIZED),
     NO_AUTH(401, ResultMessage.NO_AUTH),
-    ACCESS_NO_AUTH(401, ResultMessage.ACCESS_NO_AUTH),
+
+    // 권한 없음
+    ACCESS_NO_AUTH(403, ResultMessage.ACCESS_NO_AUTH),
 
     ACCESS_TOKEN_EXPIRED(403,ResultMessage.ACCESS_TOKEN_EXPIRED),
     REFRESH_TOKEN_EXPIRED(403, ResultMessage.REFRESH_TOKEN_EXPIRED),

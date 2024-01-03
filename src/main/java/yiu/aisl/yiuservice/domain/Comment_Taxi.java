@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import yiu.aisl.yiuservice.domain.state.ApplyState;
 
 import java.time.LocalDateTime;
 
@@ -38,8 +39,7 @@ public class Comment_Taxi {
     private Integer number;
 
     @Column(nullable = false)
-    @ColumnDefault("0")
-    private Byte state;
+    private ApplyState state;
 
     @CreationTimestamp
     @Column

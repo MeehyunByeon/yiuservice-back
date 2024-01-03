@@ -13,4 +13,13 @@ public enum PostState {
     PostState(int state) {
         this.state = state;
     }
+
+    public static PostState fromInt(int value) {
+        for (PostState postState : PostState.values()) {
+            if (postState.getState() == value) {
+                return postState;
+            }
+        }
+        throw new IllegalArgumentException("Invalid PostState value: " + value);
+    }
 }

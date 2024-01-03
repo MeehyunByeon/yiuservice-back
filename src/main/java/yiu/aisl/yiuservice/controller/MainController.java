@@ -18,6 +18,8 @@ import yiu.aisl.yiuservice.service.MainService;
 
 import java.io.UnsupportedEncodingException;
 import java.util.DuplicateFormatFlagsException;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,6 +32,11 @@ public class MainController {
     @GetMapping("/test")
     public String test() {
         throw new DuplicateFormatFlagsException("Dddd");
+    }
+
+    @GetMapping("/main")
+    public ResponseEntity<Map<String, List<?>>> getList() throws Exception {
+        return new ResponseEntity<Map<String, List<?>>>(mainService.getList(), HttpStatus.OK);
     }
 
     @PostMapping(value = "/join", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)

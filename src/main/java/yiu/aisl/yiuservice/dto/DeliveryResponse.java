@@ -22,6 +22,8 @@ public class DeliveryResponse {
 
     private Long studentId;
 
+    private String ninkname;
+
     private String title;
 
     private String contents;
@@ -67,6 +69,7 @@ public class DeliveryResponse {
         return new DeliveryResponse(
                 delivery.getDId(),
                 delivery.getUser().getStudentId(),
+                delivery.getUser().getNickname(),
                 delivery.getTitle(),
                 delivery.getContents(),
                 delivery.getDue(),
@@ -84,6 +87,7 @@ public class DeliveryResponse {
         return new DeliveryResponse(
                 delivery.getDId(),
                 delivery.getUser().getStudentId(),
+                delivery.getUser().getNickname(),
                 delivery.getTitle(),
                 delivery.getContents(),
                 delivery.getDue(),

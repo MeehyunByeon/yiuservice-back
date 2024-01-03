@@ -21,6 +21,8 @@ public class TaxiResponse {
 
     private Long studentId;
 
+    private String nickname;
+
     private String title;
 
     private String contents;
@@ -74,6 +76,7 @@ public class TaxiResponse {
         return new TaxiResponse(
                 taxi.getTId(),
                 taxi.getUser().getStudentId(),
+                taxi.getUser().getNickname(),
                 taxi.getTitle(),
                 taxi.getContents(),
                 taxi.getDue(),
@@ -94,6 +97,7 @@ public class TaxiResponse {
         return new TaxiResponse(
                 taxi.getTId(),
                 taxi.getUser().getStudentId(),
+                taxi.getUser().getNickname(),
                 taxi.getTitle(),
                 taxi.getContents(),
                 taxi.getDue(),

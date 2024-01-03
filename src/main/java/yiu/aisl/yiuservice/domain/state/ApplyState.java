@@ -15,4 +15,13 @@ public enum ApplyState {
     ApplyState(Integer state) {
         this.state = state;
     }
+
+    public static ApplyState fromInt(int value) {
+        for (ApplyState applyState : ApplyState.values()) {
+            if (applyState.getState() == value) {
+                return applyState;
+            }
+        }
+        throw new IllegalArgumentException("Invalid ApplyState value: " + value);
+    }
 }

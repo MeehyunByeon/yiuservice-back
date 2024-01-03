@@ -32,7 +32,6 @@ public class Delivery {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String contents;
 
-    @CreationTimestamp
     @Column(nullable = false)
     private LocalDateTime due;
 

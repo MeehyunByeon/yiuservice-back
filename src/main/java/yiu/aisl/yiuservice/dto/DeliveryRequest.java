@@ -77,7 +77,11 @@ public class DeliveryRequest {
 
         private String link;
 
-        private PostState state;
+        private int state = 1;
+
+        public PostState getPostState() {
+            return PostState.fromInt(state);
+        }
     }
 
     @Getter

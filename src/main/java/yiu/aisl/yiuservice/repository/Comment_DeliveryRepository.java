@@ -6,6 +6,7 @@ import yiu.aisl.yiuservice.domain.Comment_Delivery;
 import yiu.aisl.yiuservice.domain.Delivery;
 import yiu.aisl.yiuservice.domain.User;
 
+import java.util.List;
 import java.util.Optional;
 
 @Transactional
@@ -13,5 +14,7 @@ public interface Comment_DeliveryRepository extends JpaRepository<Comment_Delive
 
     Optional<Comment_Delivery> findByDcId(Long dcId);
 
-    Optional<Comment_Delivery> findByUserAndDelivery(User user, Delivery delivery);
+    List<Comment_Delivery> findByDelivery(Delivery delivery);
+
+    List<Comment_Delivery> findByUserAndDelivery(User user, Delivery delivery);
 }

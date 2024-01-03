@@ -8,19 +8,22 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import yiu.aisl.yiuservice.domain.Delivery;
+import yiu.aisl.yiuservice.domain.Taxi;
 import yiu.aisl.yiuservice.domain.Token;
 import yiu.aisl.yiuservice.domain.User;
 import yiu.aisl.yiuservice.dto.*;
 import yiu.aisl.yiuservice.exception.CustomException;
 import yiu.aisl.yiuservice.exception.ErrorCode;
+import yiu.aisl.yiuservice.repository.DeliveryRepository;
+import yiu.aisl.yiuservice.repository.TaxiRepository;
 import yiu.aisl.yiuservice.repository.TokenRepository;
 import yiu.aisl.yiuservice.repository.UserRepository;
 import yiu.aisl.yiuservice.security.TokenProvider;
 
 import java.io.UnsupportedEncodingException;
 import java.time.Duration;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional
@@ -31,6 +34,8 @@ public class MainService {
     private final PasswordEncoder passwordEncoder;
     private final TokenRepository tokenRepository;
     private final TokenProvider tokenProvider;
+    private final DeliveryRepository deliveryRepository;
+    private final TaxiRepository taxiRepository;
 //    private final TokenService tokenService;
 
     private final JavaMailSender javaMailSender;
@@ -40,6 +45,28 @@ public class MainService {
 
 //    private final long exp = 1000L * 60 * 60 * 24 * 14; // 14일
     private long exp_refreshToken = Duration.ofDays(14).toMillis(); // 만료시간 2주
+
+    // 메인 데이터 조회 [all]
+    @Transactional
+    public Map<String, List<?>> getList() throws Exception {
+        try {
+            List<Delivery> delivery = deliveryRepository.findAll();
+            List<DeliveryResponse> deliveryGetListDTO = new ArrayList<>();
+            delivery.forEach(s -> deliveryGetListDTO.add(DeliveryResponse.GetDeliveryDTO(s)));
+
+            List<Taxi> taxi = taxiRepository.findAll();
+            List<TaxiResponse> taxiGetListDTO = new ArrayList<>();
+            taxi.forEach(s -> taxiGetListDTO.add(TaxiResponse.GetTaxiDTO(s)));
+
+            Map<String, List<?>> response = new HashMap<>();
+            response.put("delivery", deliveryGetListDTO);
+            response.put("taxi", taxiGetListDTO);
+
+            return response;
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     // <API> 회원가입
     @Transactional

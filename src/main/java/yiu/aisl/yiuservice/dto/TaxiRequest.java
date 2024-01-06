@@ -18,14 +18,12 @@ public class TaxiRequest {
     @Setter
     public static class tIdDTO {
         private Long tId;
-
     }
 
     @Getter
     @Setter
     public static class tcIdDTO {
         private Long tcId;
-
     }
 
 
@@ -33,23 +31,17 @@ public class TaxiRequest {
     @Setter
     public static class DetailDTO {
         private Long tId;
-
     }
 
     @Getter
     @Setter
     public static class CreateDTO {
-
         private String title;
 
         private String contents;
 
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime due;
-
-//        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-//        private LocalDateTime createDate;
-//
 
         private String start;
 
@@ -64,13 +56,11 @@ public class TaxiRequest {
         private Integer max;
 
         private PostState state = PostState.ACTIVE;
-
     }
 
     @Getter
     @Setter
     public static class UpdateDTO {
-
         private Long tId;
 
         private Long studentId;
@@ -79,11 +69,7 @@ public class TaxiRequest {
 
         private String contents;
 
-//        @DateTimeFormat(pattern = "yyyy-MM-dd kk:mm:ss")
-//        private LocalDateTime due;
-
-//        @DateTimeFormat(pattern = "yyyy-MM-dd kk:mm:ss")
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd kk:mm:ss", timezone = "Asia/Seoul")
+        @DateTimeFormat(pattern = "yyyy-MM-dd kk:mm:ss")
         private LocalDateTime due;
 
         private String start;
@@ -98,13 +84,16 @@ public class TaxiRequest {
 
         private Integer max;
 
-        private PostState state;
+        private int state = 1;
+
+        public PostState getPostState() {
+            return PostState.fromInt(state);
+        }
     }
 
     @Getter
     @Setter
     public static class ApplyDTO {
-
         private Long tId;
 
         private Long studentId;

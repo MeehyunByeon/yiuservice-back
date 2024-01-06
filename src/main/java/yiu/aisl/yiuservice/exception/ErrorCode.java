@@ -32,6 +32,8 @@ public enum ErrorCode {
     CONFLICT(409, ResultMessage.CONFLICT),
     // 데이터 중복
     DUPLICATE(409, ResultMessage.DUPLICATE),
+    // 인원 초과
+    EXCESS(409, ResultMessage.EXCESS),
 
     // 서버 오류
     INTERNAL_SERVER_ERROR(500, ResultMessage.INTERNAL_SERVER_ERROR)
@@ -68,6 +70,7 @@ public enum ErrorCode {
         String NOT_EXIST = "존재하지 않음";
         String CONFLICT = "데이터 충돌";
         String DUPLICATE = "데이터 중복";
+        String EXCESS = "인원 초과";
         String INTERNAL_SERVER_ERROR = "내부 서버 오류";
     }
 

@@ -220,6 +220,10 @@ public class DeliveryService {
         Delivery delivery = findByDId(request.getDId());
         List<Comment_Delivery> listCommentDelivery = comment_deliveryRepository.findByUserAndDelivery(user, delivery);
 
+        // 404 - 글 state가 DELETED OR FINISHED
+        if(delivery.getState().equals(PostState.DELETED) || delivery.getState().equals(PostState.FINISHED))
+            throw new CustomException(ErrorCode.NOT_EXIST);
+
         // 403 - 권한 없음 => 자신의 글에 신청한 경우(작성인 == 신청인)
         if(delivery.getUser().equals(user)) throw new CustomException(ErrorCode.ACCESS_NO_AUTH);
 

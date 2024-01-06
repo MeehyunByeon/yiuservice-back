@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaxiResponse {
-
     private Long tId;
 
     private Long studentId;

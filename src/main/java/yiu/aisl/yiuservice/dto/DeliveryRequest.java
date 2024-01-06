@@ -21,7 +21,6 @@ public class DeliveryRequest {
     @Setter
     public static class dcIdDTO {
         private Long dcId;
-
     }
 
 
@@ -29,23 +28,17 @@ public class DeliveryRequest {
     @Setter
     public static class DetailDTO {
         private Long dId;
-
     }
 
     @Getter
     @Setter
     public static class CreateDTO {
-
         private String title;
 
         private String contents;
 
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime due;
-
-//        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-//        private LocalDateTime createDate;
-//
 
         private Long food;
 
@@ -87,7 +80,6 @@ public class DeliveryRequest {
     @Getter
     @Setter
     public static class ApplyDTO {
-
         private Long dId;
 
         private Long studentId;

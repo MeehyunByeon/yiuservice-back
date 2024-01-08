@@ -22,7 +22,7 @@ public class DeliveryResponse {
 
     private Long studentId;
 
-    private String ninkname;
+    private String nickname;
 
     private String title;
 

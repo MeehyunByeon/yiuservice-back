@@ -6,8 +6,7 @@ import org.springframework.stereotype.Service;
 import yiu.aisl.yiuservice.domain.*;
 import yiu.aisl.yiuservice.domain.state.ApplyState;
 import yiu.aisl.yiuservice.domain.state.PostState;
-import yiu.aisl.yiuservice.dto.TaxiRequest;
-import yiu.aisl.yiuservice.dto.TaxiResponse;
+import yiu.aisl.yiuservice.dto.*;
 import yiu.aisl.yiuservice.dto.TaxiRequest;
 import yiu.aisl.yiuservice.dto.TaxiResponse;
 import yiu.aisl.yiuservice.exception.CustomException;
@@ -15,9 +14,11 @@ import yiu.aisl.yiuservice.exception.ErrorCode;
 import yiu.aisl.yiuservice.repository.*;
 import yiu.aisl.yiuservice.security.TokenProvider;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -33,9 +34,25 @@ public class TaxiService {
     @Transactional
     public List<TaxiResponse> getList() throws Exception {
         try {
-            List<Taxi> taxi = taxiRepository.findAll();
+            List<Taxi> listActive = taxiRepository.findByStateOrderByCreatedAtDesc(PostState.ACTIVE);
+            List<Taxi> listDeleted = taxiRepository.findByStateOrderByCreatedAtDesc(PostState.DELETED);
+            List<Taxi> listFinished = taxiRepository.findByStateOrderByCreatedAtDesc(PostState.FINISHED);
+
+            // 현재 시간과 비교하여 due가 이미 지났다면 상태를 모두 FINISHED로 변경
+            LocalDateTime currentTime = LocalDateTime.now();
+            listFinished.addAll(listActive.stream()
+                    .filter(taxi -> taxi.getDue().isBefore(currentTime))
+                    .map(taxi -> {
+                        taxi.setState(PostState.FINISHED);
+                        return taxi;
+                    })
+                    .collect(Collectors.toList()));
+
             List<TaxiResponse> getListDTO = new ArrayList<>();
-            taxi.forEach(s -> getListDTO.add(TaxiResponse.GetTaxiDTO(s)));
+            getListDTO.addAll(listActive.stream().map(TaxiResponse::GetTaxiDTO).collect(Collectors.toList()));
+            getListDTO.addAll(listDeleted.stream().map(TaxiResponse::GetTaxiDTO).collect(Collectors.toList()));
+            getListDTO.addAll(listFinished.stream().map(TaxiResponse::GetTaxiDTO).collect(Collectors.toList()));
+
             return getListDTO;
         } catch (Exception e) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
@@ -51,6 +68,12 @@ public class TaxiService {
         Taxi taxi = taxiRepository.findBytId(request.getTId()).orElseThrow(() -> {
             throw new CustomException(ErrorCode.NOT_EXIST);
         });
+
+        // 현재 시간과 비교하여 due가 이미 지났다면 상태를 FINISHED로 변경
+        LocalDateTime currentTime = LocalDateTime.now();
+        if (taxi.getDue().isBefore(currentTime)) {
+            taxi.setState(PostState.FINISHED);
+        }
 
         // 409 - 삭제된 글
         if(taxi.getState().equals(PostState.DELETED)) throw new CustomException(ErrorCode.CONFLICT);
@@ -69,11 +92,14 @@ public class TaxiService {
     @Transactional
     public Boolean create(Long studentId, TaxiRequest.CreateDTO request) throws Exception{
         // 400 - 데이터 없음
-        if(request.getTitle() == null || request.getContents() == null || request.getDue() == null)
+        if(request.getTitle() == null || request.getContents() == null
+                || request.getDue() == null || request.getMax() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
         // 400 - 위치에 대한 설정 => start와 startCode 둘 다 null인 상황은 안됨
-        if(request.getStart() == null && request.getStartCode() == null)
+        if(request.getStart().isEmpty() && request.getStartCode() == null)
+            throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
+        if(request.getEnd().isEmpty() && request.getEndCode() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
         try {
@@ -108,11 +134,14 @@ public class TaxiService {
         User user = findByStudentId(studentId);
 
         // 400 - 데이터 없음
-        if(request.getTId() == null || request.getTitle() == null || request.getContents() == null || request.getDue() == null)
+        if(request.getTId() == null || request.getTitle() == null
+                || request.getContents() == null || request.getDue() == null || request.getMax() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
         // 400 - 위치에 대한 설정 => start와 startCode 둘 다 null인 상황은 안됨
-        if(request.getStart() == null && request.getStartCode() == null)
+        if(request.getStart().isEmpty() && request.getStartCode() == null)
+            throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
+        if(request.getEnd().isEmpty() && request.getEndCode() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
         Optional<Taxi> optTaxi = taxiRepository.findBytId(request.getTId());
@@ -128,10 +157,15 @@ public class TaxiService {
             throw new CustomException(ErrorCode.ACCESS_NO_AUTH);
         }
 
+        // 409 - 만약 수정한 max가 현재 수락한 인원 current보다 적으면
+        if(existingTaxi.getCurrent() >= request.getMax())
+            throw new CustomException(ErrorCode.CONFLICT);
+
         try {
             existingTaxi.setTitle(request.getTitle());
             existingTaxi.setContents(request.getContents());
             existingTaxi.setDue(request.getDue());
+            existingTaxi.setMax(request.getMax());
             existingTaxi.setStart(request.getStart());
             existingTaxi.setStartCode(request.getStartCode());
             existingTaxi.setEnd(request.getEnd());
@@ -294,9 +328,10 @@ public class TaxiService {
         // 유저 확인 404 포함
         User user = findByStudentId(studentId);
         Optional<Comment_Taxi> optComment_Taxi = comment_taxiRepository.findByTcId(request.getTcId());
-
-        // 택시글 404 포함
         Optional<Taxi> optTaxi = taxiRepository.findBytId(optComment_Taxi.get().getTaxi().getTId());
+
+        // 404 - 택시글 존재하지 않음
+        if(optTaxi.isEmpty()) throw new CustomException(ErrorCode.NOT_EXIST);
 
         // 403 - 신청 수락 권한 없음
         if(!optTaxi.get().getUser().equals(user)) throw new CustomException(ErrorCode.ACCESS_NO_AUTH);
@@ -306,13 +341,25 @@ public class TaxiService {
             throw new CustomException(ErrorCode.CONFLICT);
 
         // 409 - max 초과
-        if(optTaxi.get().getMax() < optTaxi.get().getCurrent() + optComment_Taxi.get().getNumber())
+        int current = optTaxi.get().getCurrent();
+        int number = optComment_Taxi.get().getNumber();
+        int max = optTaxi.get().getMax();
+        if (current + number > max)
             throw new CustomException(ErrorCode.EXCESS);
 
         try {
             Comment_Taxi comment_Taxi = optComment_Taxi.get();
             comment_Taxi.setState(ApplyState.ACCEPTED);
             comment_taxiRepository.save(comment_Taxi);
+
+            // current 값 증가
+            optTaxi.get().setCurrent(current + number);
+
+            // 만약 current + number == max => 마감 => state를 FINISHED로 업데이트
+            if(optTaxi.get().getMax().equals(current + number))
+                optTaxi.get().setState(PostState.FINISHED);
+            taxiRepository.save(optTaxi.get());
+
             return true;
         }
         catch (Exception e) {
@@ -326,6 +373,9 @@ public class TaxiService {
         if(request.getTcId() == null) throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
         Optional<Comment_Taxi> optComment_Taxi = comment_taxiRepository.findByTcId(request.getTcId());
+
+        // 404 - 택시 신청글 존재하지 않음
+        if(optComment_Taxi.isEmpty()) throw new CustomException(ErrorCode.NOT_EXIST);
 
         // 유저 확인 404 포함
         User user = findByStudentId(studentId);

@@ -36,7 +36,9 @@ public enum ErrorCode {
     EXCESS(409, ResultMessage.EXCESS),
 
     // 서버 오류
-    INTERNAL_SERVER_ERROR(500, ResultMessage.INTERNAL_SERVER_ERROR)
+    INTERNAL_SERVER_ERROR(500, ResultMessage.INTERNAL_SERVER_ERROR),
+    // 레디스 서버 오류
+    REDIS_SERVER_ERROR(500, ResultMessage.REDIS_SERVER_ERROR)
     ;
 
 
@@ -72,6 +74,7 @@ public enum ErrorCode {
         String DUPLICATE = "데이터 중복";
         String EXCESS = "인원 초과";
         String INTERNAL_SERVER_ERROR = "내부 서버 오류";
+        String REDIS_SERVER_ERROR = "Redis 서버 오류";
     }
 
 

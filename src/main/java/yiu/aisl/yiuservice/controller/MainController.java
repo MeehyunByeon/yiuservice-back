@@ -69,6 +69,12 @@ public class MainController {
         return true;
     }
 
+    @PostMapping(value = "/changepwd", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Boolean> changePwd(ChangePwdRequestDTO request) throws Exception {
+//        System.out.println("login: " + request.getStudentId() + request.getPwd());
+        return new ResponseEntity<Boolean>(mainService.changePwd(request), HttpStatus.OK);
+    }
+
     @PostMapping(value = "/refresh", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<TokenDto> createNewAccessToken(TokenDto token) throws Exception {
         System.out.println("/refresh - access: " + token.getAccessToken());

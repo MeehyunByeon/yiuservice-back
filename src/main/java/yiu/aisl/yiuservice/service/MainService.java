@@ -12,6 +12,7 @@ import yiu.aisl.yiuservice.domain.Delivery;
 import yiu.aisl.yiuservice.domain.Taxi;
 import yiu.aisl.yiuservice.domain.Token;
 import yiu.aisl.yiuservice.domain.User;
+import yiu.aisl.yiuservice.domain.state.PostState;
 import yiu.aisl.yiuservice.dto.*;
 import yiu.aisl.yiuservice.exception.CustomException;
 import yiu.aisl.yiuservice.exception.ErrorCode;
@@ -23,7 +24,9 @@ import yiu.aisl.yiuservice.security.TokenProvider;
 
 import java.io.UnsupportedEncodingException;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -49,15 +52,49 @@ public class MainService {
     // 메인 데이터 조회 [all]
     @Transactional
     public Map<String, List<?>> getList() throws Exception {
+
         try {
-            List<Delivery> delivery = deliveryRepository.findAll();
+            // Delivery
+            List<Delivery> listDeliveryActive = deliveryRepository.findByStateOrderByCreatedAtDesc(PostState.ACTIVE);
+            List<Delivery> listDeliveryDeleted = deliveryRepository.findByStateOrderByCreatedAtDesc(PostState.DELETED);
+            List<Delivery> listDeliveryFinished = deliveryRepository.findByStateOrderByCreatedAtDesc(PostState.FINISHED);
+
+            // 현재 시간과 비교하여 due가 이미 지났다면 상태를 모두 FINISHED로 변경
+            LocalDateTime currentTime = LocalDateTime.now();
+            listDeliveryFinished.addAll(listDeliveryActive.stream()
+                    .filter(delivery -> delivery.getDue().isBefore(currentTime))
+                    .map(delivery -> {
+                        delivery.setState(PostState.FINISHED);
+                        return delivery;
+                    })
+                    .collect(Collectors.toList()));
+
             List<DeliveryResponse> deliveryGetListDTO = new ArrayList<>();
-            delivery.forEach(s -> deliveryGetListDTO.add(DeliveryResponse.GetDeliveryDTO(s)));
+            deliveryGetListDTO.addAll(listDeliveryActive.stream().map(DeliveryResponse::GetDeliveryDTO).collect(Collectors.toList()));
+            deliveryGetListDTO.addAll(listDeliveryDeleted.stream().map(DeliveryResponse::GetDeliveryDTO).collect(Collectors.toList()));
+            deliveryGetListDTO.addAll(listDeliveryFinished.stream().map(DeliveryResponse::GetDeliveryDTO).collect(Collectors.toList()));
 
-            List<Taxi> taxi = taxiRepository.findAll();
+            // Taxi
+            List<Taxi> listTaxiActive = taxiRepository.findByStateOrderByCreatedAtDesc(PostState.ACTIVE);
+            List<Taxi> listTaxiDeleted = taxiRepository.findByStateOrderByCreatedAtDesc(PostState.DELETED);
+            List<Taxi> listTaxiFinished = taxiRepository.findByStateOrderByCreatedAtDesc(PostState.FINISHED);
+
+            // 현재 시간과 비교하여 due가 이미 지났다면 상태를 모두 FINISHED로 변경
+//            LocalDateTime currentTime = LocalDateTime.now();
+            listTaxiFinished.addAll(listTaxiActive.stream()
+                    .filter(taxi -> taxi.getDue().isBefore(currentTime))
+                    .map(taxi -> {
+                        taxi.setState(PostState.FINISHED);
+                        return taxi;
+                    })
+                    .collect(Collectors.toList()));
+
             List<TaxiResponse> taxiGetListDTO = new ArrayList<>();
-            taxi.forEach(s -> taxiGetListDTO.add(TaxiResponse.GetTaxiDTO(s)));
+            taxiGetListDTO.addAll(listTaxiActive.stream().map(TaxiResponse::GetTaxiDTO).collect(Collectors.toList()));
+            taxiGetListDTO.addAll(listTaxiDeleted.stream().map(TaxiResponse::GetTaxiDTO).collect(Collectors.toList()));
+            taxiGetListDTO.addAll(listTaxiFinished.stream().map(TaxiResponse::GetTaxiDTO).collect(Collectors.toList()));
 
+            // result
             Map<String, List<?>> response = new HashMap<>();
             response.put("delivery", deliveryGetListDTO);
             response.put("taxi", taxiGetListDTO);
@@ -98,23 +135,12 @@ public class MainService {
     @Transactional
     public Boolean checkNickname(CheckNicknameRequestDTO request) throws Exception {
         // 400 - 데이터 없음
-        System.out.println("닉네임 중복 확인: " + request.getNickname());
         if(request.getNickname() == null) throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
         // 409 - 닉네임 존재 => 중복
         if (userRepository.findByNickname(request.getNickname()).isPresent()) {
             throw new CustomException(ErrorCode.DUPLICATE);
         }
-
-//        try {
-//            // 409 - 닉네임 존재 => 중복
-//            if (userRepository.findByNickname(request.getNickname()).isPresent()) {
-//                throw new CustomException(ErrorCode.DUPLICATE);
-//            }
-//        }
-//        catch (Exception e) {
-//            throw new Exception("서버 오류");
-//        }
 
         return true;
     }
@@ -134,11 +160,11 @@ public class MainService {
             throw new CustomException(ErrorCode.VALID_NOT_PWD);
         }
 
-        // 리프레시 토큰 생성
-        user.setRefreshToken(createRefreshToken(user));
-//        String accessToken = tokenProvider.generateToken(user, Duration.ofHours(2));
 
         try {
+            // 리프레시 토큰 생성
+            user.setRefreshToken(createRefreshToken(user));
+            // String accessToken = tokenProvider.generateToken(user, Duration.ofHours(2));
             UserLoginResponseDto response = UserLoginResponseDto.builder()
                     .studentId(user.getStudentId())
                     .nickname(user.getNickname())
@@ -152,6 +178,28 @@ public class MainService {
         catch (Exception e) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    // <API> 비밀번호 재설정
+    public Boolean changePwd(ChangePwdRequestDTO request) throws Exception {
+        // 400 - 데이터 없음
+        if(request.getStudentId() == null || request.getPwd() == null)
+            throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
+
+        // 401 - 유저 존재 확인
+        User user = userRepository.findByStudentId(request.getStudentId()).orElseThrow(()
+                -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));
+
+        user.setPwd(passwordEncoder.encode(request.getPwd()));
+        userRepository.save(user);
+        try {
+            user.setPwd(passwordEncoder.encode(request.getPwd()));
+            userRepository.save(user);
+        }
+        catch (Exception e) {
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+        return true;
     }
 
     // 학번으로 유저의 정보를 가져오는 메서드
@@ -174,8 +222,6 @@ public class MainService {
 
     //실제 메일 전송
     public String sendEmail(String email) throws MessagingException, UnsupportedEncodingException {
-
-        System.out.println("이메일: " + email);
         // 400 - 데이터 없음
         if(email == null) throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
@@ -199,7 +245,6 @@ public class MainService {
     // 메일 양식 작성
     public MimeMessage createEmailForm(String email) throws MessagingException, UnsupportedEncodingException {
         // 코드를 생성합니다.
-        System.out.println("emial: " + email);
         createCode();
         String setFrom = "yiuaiservicelab@gmail.com";	// 보내는 사람
         String toEmail = email;		// 받는 사람(값 받아옵니다.)
@@ -246,11 +291,11 @@ public class MainService {
 
     public Token validRefreshToken(User user, String refreshToken) throws Exception {
         Token token = tokenRepository.findById(user.getStudentId())
-                .orElseThrow(() -> new Exception("만료된 계정입니다. 로그인을 다시 시도하세요"));
+                .orElseThrow(() -> new CustomException(ErrorCode.LOGIN_REQUIRED));
+
         // 해당유저의 Refresh 토큰 만료 : Redis에 해당 유저의 토큰이 존재하지 않음
-        if (token.getRefreshToken() == null) {
-            return null;
-        } else {
+        if (token.getRefreshToken() == null) throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        try {
             // 리프레시 토큰 만료일자가 얼마 남지 않았을 때 만료시간 연장..?
             if (token.getExpiration() < 10) {
                 token.setExpiration(1000L);
@@ -259,26 +304,34 @@ public class MainService {
 
             // 토큰이 같은지 비교
             if (!token.getRefreshToken().equals(refreshToken)) {
-                return null;
+                // 원래 null
+                throw new CustomException(ErrorCode.LOGIN_REQUIRED);
             } else {
                 return token;
             }
         }
+        catch (Exception e) {
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
     }
     public TokenDto refreshAccessToken(TokenDto token) throws Exception {
         Long studentId = tokenProvider.getStudentId(token.getAccessToken());
-        System.out.println("STUDENT-ID" + studentId);
         User user = userRepository.findByStudentId(studentId).orElseThrow(() ->
-                new BadCredentialsException("잘못된 계정정보입니다."));
+                new CustomException(ErrorCode.MEMBER_NOT_EXIST));
         Token refreshToken = validRefreshToken(user, token.getRefreshToken());
 
-        if (refreshToken != null) {
-            return TokenDto.builder()
-                    .accessToken(tokenProvider.createToken(user))
-                    .refreshToken(refreshToken.getRefreshToken())
-                    .build();
-        } else {
-            throw new Exception("로그인을 해주세요");
+        try {
+            if (refreshToken != null) {
+                return TokenDto.builder()
+                        .accessToken(tokenProvider.createToken(user))
+                        .refreshToken(refreshToken.getRefreshToken())
+                        .build();
+            } else {
+                throw new CustomException(ErrorCode.LOGIN_REQUIRED);
+            }
+        }
+        catch (Exception e) {
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 }

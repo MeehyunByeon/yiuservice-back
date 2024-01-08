@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -41,9 +42,25 @@ public class DeliveryService {
     @Transactional
     public List<DeliveryResponse> getList() throws Exception {
         try {
-            List<Delivery> delivery = deliveryRepository.findAll();
+            List<Delivery> listActive = deliveryRepository.findByStateOrderByCreatedAtDesc(PostState.ACTIVE);
+            List<Delivery> listDeleted = deliveryRepository.findByStateOrderByCreatedAtDesc(PostState.DELETED);
+            List<Delivery> listFinished = deliveryRepository.findByStateOrderByCreatedAtDesc(PostState.FINISHED);
+
+            // 현재 시간과 비교하여 due가 이미 지났다면 상태를 모두 FINISHED로 변경
+            LocalDateTime currentTime = LocalDateTime.now();
+            listFinished.addAll(listActive.stream()
+                    .filter(delivery -> delivery.getDue().isBefore(currentTime))
+                    .map(delivery -> {
+                        delivery.setState(PostState.FINISHED);
+                        return delivery;
+                    })
+                    .collect(Collectors.toList()));
+
             List<DeliveryResponse> getListDTO = new ArrayList<>();
-            delivery.forEach(s -> getListDTO.add(DeliveryResponse.GetDeliveryDTO(s)));
+            getListDTO.addAll(listActive.stream().map(DeliveryResponse::GetDeliveryDTO).collect(Collectors.toList()));
+            getListDTO.addAll(listDeleted.stream().map(DeliveryResponse::GetDeliveryDTO).collect(Collectors.toList()));
+            getListDTO.addAll(listFinished.stream().map(DeliveryResponse::GetDeliveryDTO).collect(Collectors.toList()));
+
             return getListDTO;
         } catch (Exception e) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
@@ -59,6 +76,12 @@ public class DeliveryService {
         Delivery delivery = deliveryRepository.findBydId(request.getDId()).orElseThrow(() -> {
             throw new CustomException(ErrorCode.NOT_EXIST);
         });
+
+        // 현재 시간과 비교하여 due가 이미 지났다면 상태를 FINISHED로 변경
+        LocalDateTime currentTime = LocalDateTime.now();
+        if (delivery.getDue().isBefore(currentTime)) {
+            delivery.setState(PostState.FINISHED);
+        }
 
         // 409 - 삭제된 글
         if(delivery.getState().equals(PostState.DELETED)) throw new CustomException(ErrorCode.CONFLICT);
@@ -289,8 +312,9 @@ public class DeliveryService {
         User user = findByStudentId(studentId);
         Optional<Comment_Delivery> optComment_Delivery = comment_deliveryRepository.findByDcId(request.getDcId());
 
-        // 배달글 404 포함
         Optional<Delivery> optDelivery = deliveryRepository.findBydId(optComment_Delivery.get().getDelivery().getDId());
+        // 404 - 배달글 존재하지 않음
+        if(optDelivery.isEmpty()) throw new CustomException(ErrorCode.NOT_EXIST);
 
         // 403 - 신청 수락 권한 없음
         if(!optDelivery.get().getUser().equals(user)) throw new CustomException(ErrorCode.ACCESS_NO_AUTH);
@@ -315,6 +339,8 @@ public class DeliveryService {
         if(request.getDcId() == null) throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
         Optional<Comment_Delivery> optComment_Delivery = comment_deliveryRepository.findByDcId(request.getDcId());
+        // 404 - 해당 신청 글 없음
+        if(optComment_Delivery.isEmpty()) throw new CustomException(ErrorCode.NOT_EXIST);
 
         // 유저 확인 404 포함
         User user = findByStudentId(studentId);

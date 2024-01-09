@@ -39,7 +39,7 @@ public class Taxi {
     private PostState state;
 
     @Column
-    @ColumnDefault("1")
+    @ColumnDefault("0")
     private Integer current;
 
     @Column(nullable = false)

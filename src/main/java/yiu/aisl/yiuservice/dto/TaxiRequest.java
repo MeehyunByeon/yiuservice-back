@@ -51,7 +51,7 @@ public class TaxiRequest {
 
         private Long endCode;
 
-        private Integer current = 1;
+        private Integer current = 0;
 
         private Integer max;
 

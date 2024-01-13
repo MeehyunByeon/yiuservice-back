@@ -40,9 +40,13 @@ public class DeliveryRequest {
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime due;
 
-        private Long food;
+        private String food;
 
-        private Long location;
+        private Long foodCode;
+
+        private String location;
+
+        private Long locationCode;
 
         private String link;
 
@@ -64,9 +68,13 @@ public class DeliveryRequest {
         @DateTimeFormat(pattern = "yyyy-MM-dd kk:mm:ss")
         private LocalDateTime due;
 
-        private Long food;
+        private String food;
 
-        private Long location;
+        private Long foodCode;
+
+        private String location;
+
+        private Long locationCode;
 
         private String link;
 

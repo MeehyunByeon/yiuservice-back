@@ -8,18 +8,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import yiu.aisl.yiuservice.domain.Delivery;
-import yiu.aisl.yiuservice.domain.Taxi;
-import yiu.aisl.yiuservice.domain.Token;
-import yiu.aisl.yiuservice.domain.User;
+import yiu.aisl.yiuservice.domain.*;
+import yiu.aisl.yiuservice.domain.state.ApplyState;
 import yiu.aisl.yiuservice.domain.state.PostState;
 import yiu.aisl.yiuservice.dto.*;
 import yiu.aisl.yiuservice.exception.CustomException;
 import yiu.aisl.yiuservice.exception.ErrorCode;
-import yiu.aisl.yiuservice.repository.DeliveryRepository;
-import yiu.aisl.yiuservice.repository.TaxiRepository;
-import yiu.aisl.yiuservice.repository.TokenRepository;
-import yiu.aisl.yiuservice.repository.UserRepository;
+import yiu.aisl.yiuservice.repository.*;
 import yiu.aisl.yiuservice.security.TokenProvider;
 
 import java.io.UnsupportedEncodingException;
@@ -38,7 +33,9 @@ public class MainService {
     private final TokenRepository tokenRepository;
     private final TokenProvider tokenProvider;
     private final DeliveryRepository deliveryRepository;
+    private final Comment_DeliveryRepository comment_deliveryRepository;
     private final TaxiRepository taxiRepository;
+    private final Comment_TaxiRepository comment_taxiRepository;
 //    private final TokenService tokenService;
 
     private final JavaMailSender javaMailSender;
@@ -65,6 +62,11 @@ public class MainService {
                     .filter(delivery -> delivery.getDue().isBefore(currentTime))
                     .map(delivery -> {
                         delivery.setState(PostState.FINISHED);
+
+                        // 마감된 배달 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
+                        List<Comment_Delivery> waitingComments = comment_deliveryRepository.findByDeliveryAndState(delivery, ApplyState.WAITING);
+                        waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
+                        comment_deliveryRepository.saveAll(waitingComments);
                         return delivery;
                     })
                     .collect(Collectors.toList()));
@@ -85,6 +87,12 @@ public class MainService {
                     .filter(taxi -> taxi.getDue().isBefore(currentTime))
                     .map(taxi -> {
                         taxi.setState(PostState.FINISHED);
+
+                        // 마감된 택시 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
+                        List<Comment_Taxi> waitingComments = comment_taxiRepository.findByTaxiAndState(taxi, ApplyState.WAITING);
+                        waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
+                        comment_taxiRepository.saveAll(waitingComments);
+
                         return taxi;
                     })
                     .collect(Collectors.toList()));

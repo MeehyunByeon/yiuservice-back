@@ -44,6 +44,12 @@ public class TaxiService {
                     .filter(taxi -> taxi.getDue().isBefore(currentTime))
                     .map(taxi -> {
                         taxi.setState(PostState.FINISHED);
+
+                        // 마감된 택시 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
+                        List<Comment_Taxi> waitingComments = comment_taxiRepository.findByTaxiAndState(taxi, ApplyState.WAITING);
+                        waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
+                        comment_taxiRepository.saveAll(waitingComments);
+
                         return taxi;
                     })
                     .collect(Collectors.toList()));
@@ -73,6 +79,11 @@ public class TaxiService {
         LocalDateTime currentTime = LocalDateTime.now();
         if (taxi.getDue().isBefore(currentTime)) {
             taxi.setState(PostState.FINISHED);
+
+            // 마감된 택시 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
+            List<Comment_Taxi> waitingComments = comment_taxiRepository.findByTaxiAndState(taxi, ApplyState.WAITING);
+            waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
+            comment_taxiRepository.saveAll(waitingComments);
         }
 
         // 409 - 삭제된 글
@@ -96,10 +107,11 @@ public class TaxiService {
                 || request.getDue() == null || request.getMax() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
-        // 400 - 위치에 대한 설정 => start와 startCode 둘 다 null인 상황은 안됨
-        if(request.getStart().isEmpty() && request.getStartCode() == null)
+        // 400 - 출발지
+        if((request.getStart() == null || request.getStart().isEmpty()) && request.getStartCode() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
-        if(request.getEnd().isEmpty() && request.getEndCode() == null)
+        // 400 - 목적지
+        if((request.getEnd() == null || request.getEnd().isEmpty()) && request.getEndCode() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
         try {
@@ -138,10 +150,11 @@ public class TaxiService {
                 || request.getContents() == null || request.getDue() == null || request.getMax() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
-        // 400 - 위치에 대한 설정 => start와 startCode 둘 다 null인 상황은 안됨
-        if(request.getStart().isEmpty() && request.getStartCode() == null)
+        // 400 - 출발지
+        if((request.getStart() == null || request.getStart().isEmpty()) && request.getStartCode() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
-        if(request.getEnd().isEmpty() && request.getEndCode() == null)
+        // 400 - 목적지
+        if((request.getEnd() == null || request.getEnd().isEmpty()) && request.getEndCode() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
         Optional<Taxi> optTaxi = taxiRepository.findBytId(request.getTId());
@@ -239,6 +252,10 @@ public class TaxiService {
             taxiRepository.save(taxi);
 
             // ### 마감할 때 신청글을 모두 FINISHED 처리 ###
+            // 마감된 택시 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
+            List<Comment_Taxi> waitingComments = comment_taxiRepository.findByTaxiAndState(taxi, ApplyState.WAITING);
+            waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
+            comment_taxiRepository.saveAll(waitingComments);
 
             return true;
         }

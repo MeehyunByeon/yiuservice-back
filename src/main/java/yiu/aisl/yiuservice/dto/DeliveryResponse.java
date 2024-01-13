@@ -32,11 +32,15 @@ public class DeliveryResponse {
 
     private PostState state;
 
-    private Long food;
+    private String food;
+
+    private Long foodCode;
 
     private String link;
 
-    private Long location;
+    private String location;
+
+    private Long locationCode;
 
     private LocalDateTime createdAt;
 
@@ -75,8 +79,10 @@ public class DeliveryResponse {
                 delivery.getDue(),
                 delivery.getState(),
                 delivery.getFood(),
+                delivery.getFoodCode(),
                 delivery.getLink(),
                 delivery.getLocation(),
+                delivery.getLocationCode(),
                 delivery.getCreatedAt(),
                 delivery.getUpdatedAt(),
                 null // 일단 null로 표시
@@ -93,8 +99,10 @@ public class DeliveryResponse {
                 delivery.getDue(),
                 delivery.getState(),
                 delivery.getFood(),
+                delivery.getFoodCode(),
                 delivery.getLink(),
                 delivery.getLocation(),
+                delivery.getLocationCode(),
                 delivery.getCreatedAt(),
                 delivery.getUpdatedAt(),
                 delivery.getComments().stream()

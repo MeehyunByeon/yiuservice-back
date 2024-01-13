@@ -38,14 +38,20 @@ public class Delivery {
     @Column(nullable = false)
     private PostState state;
 
+    @Column(length = 100)
+    private String food;
+
     @Column
-    private Long food;
+    private Long foodCode;
 
     @Column(columnDefinition = "TEXT")
     private String link;
 
+    @Column(length = 100)
+    private String location;
+
     @Column
-    private Long location;
+    private Long locationCode;
 
     @CreationTimestamp
     @Column

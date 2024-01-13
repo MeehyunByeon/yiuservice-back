@@ -7,6 +7,7 @@ import org.aspectj.weaver.ast.Not;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import yiu.aisl.yiuservice.domain.Comment_Delivery;
+import yiu.aisl.yiuservice.domain.Comment_Taxi;
 import yiu.aisl.yiuservice.domain.Delivery;
 import yiu.aisl.yiuservice.domain.User;
 import yiu.aisl.yiuservice.domain.state.ApplyState;
@@ -52,6 +53,12 @@ public class DeliveryService {
                     .filter(delivery -> delivery.getDue().isBefore(currentTime))
                     .map(delivery -> {
                         delivery.setState(PostState.FINISHED);
+
+                        // 마감된 배달 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
+                        List<Comment_Delivery> waitingComments = comment_deliveryRepository.findByDeliveryAndState(delivery, ApplyState.WAITING);
+                        waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
+                        comment_deliveryRepository.saveAll(waitingComments);
+
                         return delivery;
                     })
                     .collect(Collectors.toList()));
@@ -81,6 +88,11 @@ public class DeliveryService {
         LocalDateTime currentTime = LocalDateTime.now();
         if (delivery.getDue().isBefore(currentTime)) {
             delivery.setState(PostState.FINISHED);
+
+            // 마감된 배달 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
+            List<Comment_Delivery> waitingComments = comment_deliveryRepository.findByDeliveryAndState(delivery, ApplyState.WAITING);
+            waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
+            comment_deliveryRepository.saveAll(waitingComments);
         }
 
         // 409 - 삭제된 글
@@ -103,6 +115,15 @@ public class DeliveryService {
         if(request.getTitle() == null || request.getContents() == null || request.getDue() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
+        // 400 - 음식, 위치
+        if((request.getFood() == null || request.getFood().isEmpty()) && request.getFoodCode() == null)
+            throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
+        // 400 - 위치
+        if((request.getLocation() == null || request.getLocation().isEmpty()) && request.getLocationCode() == null)
+            throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
+
+
+
         try {
             // 유저 확인 404 포함
             User user = findByStudentId(studentId);
@@ -113,7 +134,9 @@ public class DeliveryService {
                     .contents(request.getContents())
                     .due(request.getDue())
                     .food(request.getFood())
+                    .foodCode(request.getFoodCode())
                     .location(request.getLocation())
+                    .locationCode(request.getLocationCode())
                     .link(request.getLink())
                     .state(request.getState())
                     .build();
@@ -135,6 +158,13 @@ public class DeliveryService {
         if(request.getDId() == null || request.getTitle() == null || request.getContents() == null || request.getDue() == null)
             throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
 
+        // 400 - 음식, 위치
+        if((request.getFood() == null || request.getFood().isEmpty()) && request.getFoodCode() == null)
+            throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
+        // 400 - 위치
+        if((request.getLocation() == null || request.getLocation().isEmpty()) && request.getLocationCode() == null)
+            throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
+
         Optional<Delivery> optDelivery = deliveryRepository.findBydId(request.getDId());
 
         // 404 - 글이 존재하지 않음
@@ -153,7 +183,9 @@ public class DeliveryService {
             existingDelivery.setContents(request.getContents());
             existingDelivery.setDue(request.getDue());
             existingDelivery.setFood(request.getFood());
+            existingDelivery.setFoodCode(request.getFoodCode());
             existingDelivery.setLocation(request.getLocation());
+            existingDelivery.setLocationCode(request.getLocationCode());
             existingDelivery.setLink(request.getLink());
             existingDelivery.setState(request.getPostState());
             deliveryRepository.save(existingDelivery);
@@ -192,6 +224,7 @@ public class DeliveryService {
             Delivery existingDelivery = optDelivery.get();
             existingDelivery.setState(PostState.DELETED);
             deliveryRepository.save(existingDelivery);
+
             return true;
         }
         catch (Exception e) {
@@ -223,7 +256,11 @@ public class DeliveryService {
             delivery.setState(PostState.FINISHED);
             deliveryRepository.save(delivery);
 
-            // ### 마감할 때 신청글을 모두 FINISHED 처리 ###
+            // ### 마감할 때 대기 중인 신청글을 모두 FINISHED 처리 ###
+            // 마감된 배달 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
+            List<Comment_Delivery> waitingComments = comment_deliveryRepository.findByDeliveryAndState(delivery, ApplyState.WAITING);
+            waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
+            comment_deliveryRepository.saveAll(waitingComments);
 
             return true;
         }

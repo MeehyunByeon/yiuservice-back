@@ -64,10 +64,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 // 회원가입, 로그인은 모두 승인
-                                .requestMatchers("/main", "/login", "/join", "/nickcheck", "/mail", "/refresh", "/changepwd", "/token", "/api/jwt/info/**", "/test").permitAll()
+                                .requestMatchers("/main", "/login", "/join", "/nickcheck", "/mail", "/refresh", "/changepwd", "/token").permitAll()
                                 .requestMatchers("/delivery", "/delivery/detail", "/taxi", "/taxi/detail").permitAll()
                                 .requestMatchers("/delivery/**").authenticated()
                                 .requestMatchers("/taxi/**").authenticated()
+                                .requestMatchers("/user/**").authenticated()
+                                .requestMatchers("/notice/**").authenticated()
+                                .requestMatchers("/report/**").authenticated()
                                 .anyRequest().authenticated()
                 )
                 // JWT 인증 필터 적용

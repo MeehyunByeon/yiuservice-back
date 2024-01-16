@@ -13,6 +13,9 @@ import yiu.aisl.yiuservice.repository.UserRepository;
 import yiu.aisl.yiuservice.service.MainService;
 import yiu.aisl.yiuservice.service.UserService;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
@@ -20,10 +23,16 @@ public class UserController {
     private final UserRepository userRepository;
     private final UserService userService;
 
-    // 회원정보조회
+    // 내 정보 조회
     @PostMapping(value = "/mypage", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<UserResponse> getMyInfo(@AuthenticationPrincipal CustomUserDetails user) throws Exception {
         return new ResponseEntity<UserResponse>(userService.getMyInfo(user.getStudentId()), HttpStatus.OK);
+    }
+
+    // 내 활성화 글 조회
+    @GetMapping("/main")
+    public ResponseEntity<Map<String, List<?>>> getActiveList() throws Exception {
+        return new ResponseEntity<Map<String, List<?>>>(userService.getMyActiveList(), HttpStatus.OK);
     }
 
 }

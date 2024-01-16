@@ -16,4 +16,6 @@ public interface TaxiRepository extends JpaRepository<Taxi, Long> {
     Optional<Taxi> findBytId(Long tId);
 
     List<Taxi> findByStateOrderByCreatedAtDesc(PostState state);
+
+    List<Taxi> findByUserAndState(User user, PostState state);
 }

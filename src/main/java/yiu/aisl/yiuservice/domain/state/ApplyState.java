@@ -3,7 +3,7 @@ package yiu.aisl.yiuservice.domain.state;
 import lombok.Getter;
 
 @Getter
-public enum ApplyState {
+public enum ApplyState implements State{
     CANCELED(0), // 취소(신청자가 취소)
     WAITING(1), // 대기
     ACCEPTED(2), // 수락

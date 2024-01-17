@@ -16,5 +16,9 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
 
     List<Delivery> findByStateOrderByCreatedAtDesc(PostState state);
 
+    List<Delivery> findByUser(User user);
+
     List<Delivery> findByUserAndState(User user, PostState state);
+
+    List<Delivery> findByUserOrderByStateDescCreatedAtDesc(User user);
 }

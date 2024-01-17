@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import yiu.aisl.yiuservice.domain.ActiveEntity;
 import yiu.aisl.yiuservice.domain.Comment_Delivery;
 import yiu.aisl.yiuservice.domain.Delivery;
 import yiu.aisl.yiuservice.domain.User;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Comment_DeliveryResponse {
+public class Comment_DeliveryResponse implements ActiveEntity {
     private Long dcId;
 
     private Long studentId;

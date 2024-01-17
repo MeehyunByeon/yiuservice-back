@@ -9,10 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import yiu.aisl.yiuservice.domain.Comment_Delivery;
-import yiu.aisl.yiuservice.domain.Comment_Taxi;
-import yiu.aisl.yiuservice.domain.Taxi;
-import yiu.aisl.yiuservice.domain.User;
+import yiu.aisl.yiuservice.domain.*;
 import yiu.aisl.yiuservice.domain.state.ApplyState;
 
 import java.time.LocalDateTime;
@@ -20,7 +17,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Comment_TaxiResponse {
+public class Comment_TaxiResponse implements ActiveEntity {
 
     private Long tcId;
 

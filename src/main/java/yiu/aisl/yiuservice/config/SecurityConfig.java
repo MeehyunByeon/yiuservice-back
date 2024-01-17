@@ -65,7 +65,7 @@ public class SecurityConfig {
                         authorize
                                 // 회원가입, 로그인은 모두 승인
                                 .requestMatchers("/main", "/login", "/join", "/nickcheck", "/mail", "/refresh", "/changepwd", "/token").permitAll()
-                                .requestMatchers("/delivery", "/delivery/detail", "/taxi", "/taxi/detail").permitAll()
+                                .requestMatchers("/delivery", "/delivery/detail", "/taxi", "/taxi/detail", "/notice", "/notice/detail").permitAll()
                                 .requestMatchers("/delivery/**").authenticated()
                                 .requestMatchers("/taxi/**").authenticated()
                                 .requestMatchers("/user/**").authenticated()

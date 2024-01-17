@@ -3,7 +3,7 @@ package yiu.aisl.yiuservice.domain.state;
 import lombok.Getter;
 
 @Getter
-public enum PostState {
+public enum PostState implements State{
     DELETED(0), // 삭제
     ACTIVE(1), // 모집중
     FINISHED(2); // 마감

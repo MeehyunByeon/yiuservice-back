@@ -5,9 +5,11 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import yiu.aisl.yiuservice.domain.ActiveEntity;
 import yiu.aisl.yiuservice.domain.Delivery;
 import yiu.aisl.yiuservice.domain.User;
 import yiu.aisl.yiuservice.domain.state.ApplyState;
+import yiu.aisl.yiuservice.domain.state.EntityCode;
 import yiu.aisl.yiuservice.domain.state.PostState;
 
 import java.time.LocalDateTime;
@@ -17,7 +19,7 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DeliveryResponse {
+public class DeliveryResponse implements ActiveEntity {
     private Long dId;
 
     private Long studentId;
@@ -85,7 +87,7 @@ public class DeliveryResponse {
                 delivery.getLocationCode(),
                 delivery.getCreatedAt(),
                 delivery.getUpdatedAt(),
-                null // 일단 null로 표시
+                null
         );
     }
 

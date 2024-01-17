@@ -3,6 +3,7 @@ package yiu.aisl.yiuservice.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import yiu.aisl.yiuservice.domain.ActiveEntity;
 import yiu.aisl.yiuservice.domain.Delivery;
 import yiu.aisl.yiuservice.domain.Taxi;
 import yiu.aisl.yiuservice.domain.state.ApplyState;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TaxiResponse {
+public class TaxiResponse implements ActiveEntity {
     private Long tId;
 
     private Long studentId;

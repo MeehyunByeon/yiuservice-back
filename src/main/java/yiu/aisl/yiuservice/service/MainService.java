@@ -198,8 +198,6 @@ public class MainService {
         User user = userRepository.findByStudentId(request.getStudentId()).orElseThrow(()
                 -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));
 
-        user.setPwd(passwordEncoder.encode(request.getPwd()));
-        userRepository.save(user);
         try {
             user.setPwd(passwordEncoder.encode(request.getPwd()));
             userRepository.save(user);

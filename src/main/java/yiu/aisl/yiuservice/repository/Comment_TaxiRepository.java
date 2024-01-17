@@ -16,11 +16,13 @@ public interface Comment_TaxiRepository extends JpaRepository<Comment_Taxi, Long
 
     List<Comment_Taxi> findByTaxi(Taxi taxi);
 
+    List<Comment_Taxi> findByUser(User user);
+
     List<Comment_Taxi> findByUserAndTaxi(User user, Taxi taxi);
 
     List<Comment_Taxi> findByTaxiAndState(Taxi taxi, ApplyState state);
 
     List<Comment_Taxi> findByUserAndState(User user, ApplyState state);
 
-    List<Comment_Taxi> findByUserAndStateAndDueAfter(User user, ApplyState state, LocalDateTime currentTime);
+//    List<Comment_Taxi> findByUserAndStateAndDueAfter(User user, ApplyState state, LocalDateTime currentTime);
 }

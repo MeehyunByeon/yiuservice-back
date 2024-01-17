@@ -17,5 +17,9 @@ public interface TaxiRepository extends JpaRepository<Taxi, Long> {
 
     List<Taxi> findByStateOrderByCreatedAtDesc(PostState state);
 
+    List<Taxi> findByUser(User user);
+
     List<Taxi> findByUserAndState(User user, PostState state);
+
+    List<Taxi> findByUserOrderByStateDescCreatedAtDesc(User user);
 }

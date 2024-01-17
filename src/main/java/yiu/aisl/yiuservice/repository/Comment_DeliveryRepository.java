@@ -16,11 +16,13 @@ public interface Comment_DeliveryRepository extends JpaRepository<Comment_Delive
 
     List<Comment_Delivery> findByDelivery(Delivery delivery);
 
+    List<Comment_Delivery> findByUser(User user);
+
     List<Comment_Delivery> findByUserAndDelivery(User user, Delivery delivery);
 
     List<Comment_Delivery> findByDeliveryAndState(Delivery delivery, ApplyState state);
 
     List<Comment_Delivery> findByUserAndState(User user, ApplyState state);
 
-    List<Comment_Delivery> findByUserAndStateAndDueAfter(User user, ApplyState state, LocalDateTime currentTime);
+//    List<Comment_Delivery> findByUserAndStateAndDueAfter(User user, ApplyState state, LocalDateTime currentTime);
 }

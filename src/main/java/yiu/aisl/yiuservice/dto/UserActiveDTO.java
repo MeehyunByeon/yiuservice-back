@@ -10,8 +10,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserActiveDTO {
-    private List<DeliveryResponse> deliveryPosts;
+    private List<DeliveryResponse> delivery;
     private List<Comment_DeliveryResponse> deliveryComments;
-    private List<TaxiResponse> taxiPosts;
+    private List<TaxiResponse> taxi;
     private List<Comment_TaxiResponse> taxiComments;
 }

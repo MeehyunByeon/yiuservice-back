@@ -24,7 +24,7 @@ public class UserController {
     private final UserService userService;
 
     // 내 정보 조회
-    @PostMapping(value = "/mypage", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @GetMapping(value = "/mypage")
     public ResponseEntity<UserResponse> getMyInfo(@AuthenticationPrincipal CustomUserDetails user) throws Exception {
         return new ResponseEntity<UserResponse>(userService.getMyInfo(user.getStudentId()), HttpStatus.OK);
     }

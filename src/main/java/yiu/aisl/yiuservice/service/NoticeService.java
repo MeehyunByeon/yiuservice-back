@@ -60,7 +60,7 @@ public class NoticeService {
     }
 
 
-    // 공지사항 작성 [writer]
+    // 공지사항 작성 [admin]
     @Transactional
     public Boolean create(NoticeRequest.CreateDTO request) throws Exception{
         // 400 - 데이터 없음
@@ -80,7 +80,7 @@ public class NoticeService {
         return true;
     }
 
-    // 공지사항 수정 [writer]
+    // 공지사항 수정 [admin]
     @Transactional
     public Boolean update(NoticeRequest.UpdateDTO request) throws Exception{
 
@@ -106,7 +106,7 @@ public class NoticeService {
         return true;
     }
 
-    // 공지사항 삭제 [writer]
+    // 공지사항 삭제 [admin]
     @Transactional
     public Boolean delete(NoticeRequest.noticeIdDTO request) throws Exception{
 

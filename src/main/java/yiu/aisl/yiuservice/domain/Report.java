@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import yiu.aisl.yiuservice.domain.state.EntityCode;
 
 import java.time.LocalDateTime;
 
@@ -20,20 +21,20 @@ public class Report {
     private Long reportId;
 
     @ManyToOne
-    @JoinColumn(name = "from_id")
+    @JoinColumn(name = "from_id", nullable = false)
     private User fromId;
 
     @ManyToOne
-    @JoinColumn(name = "to_id")
+    @JoinColumn(name = "to_id", nullable = false)
     private User toId;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String contents;
 
-    @Column
-    private Byte type;
+    @Column(nullable = false)
+    private Integer type;
 
-    @Column
+    @Column(nullable = false)
     private Long id;
 
     @CreationTimestamp

@@ -54,10 +54,7 @@ public class DeliveryService {
                     .map(delivery -> {
                         delivery.setState(PostState.FINISHED);
 
-                        // 마감된 배달 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
-                        List<Comment_Delivery> waitingComments = comment_deliveryRepository.findByDeliveryAndState(delivery, ApplyState.WAITING);
-                        waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
-                        comment_deliveryRepository.saveAll(waitingComments);
+                        waitToFinish(delivery); // 대기 신청글 => 마감처리
 
                         return delivery;
                     })
@@ -88,11 +85,7 @@ public class DeliveryService {
         LocalDateTime currentTime = LocalDateTime.now();
         if (delivery.getDue().isBefore(currentTime)) {
             delivery.setState(PostState.FINISHED);
-
-            // 마감된 배달 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
-            List<Comment_Delivery> waitingComments = comment_deliveryRepository.findByDeliveryAndState(delivery, ApplyState.WAITING);
-            waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
-            comment_deliveryRepository.saveAll(waitingComments);
+            waitToFinish(delivery); // 대기 신청글 => 마감처리
         }
 
         // 409 - 삭제된 글
@@ -256,11 +249,7 @@ public class DeliveryService {
             delivery.setState(PostState.FINISHED);
             deliveryRepository.save(delivery);
 
-            // ### 마감할 때 대기 중인 신청글을 모두 FINISHED 처리 ###
-            // 마감된 배달 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
-            List<Comment_Delivery> waitingComments = comment_deliveryRepository.findByDeliveryAndState(delivery, ApplyState.WAITING);
-            waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
-            comment_deliveryRepository.saveAll(waitingComments);
+            waitToFinish(delivery); // 대기 신청글 => 마감처리
 
             return true;
         }
@@ -359,6 +348,7 @@ public class DeliveryService {
         // 409 - 글이 활성화 상태가 아님 OR 신청이 대기 상태가 아님(수락, 삭제, 거절 등)
         if(!optDelivery.get().getState().equals(PostState.ACTIVE) || !optComment_Delivery.get().getState().equals(ApplyState.WAITING)) throw new CustomException(ErrorCode.CONFLICT);
 
+
         try {
             Comment_Delivery comment_delivery = optComment_Delivery.get();
             comment_delivery.setState(ApplyState.ACCEPTED);
@@ -418,5 +408,13 @@ public class DeliveryService {
     public Comment_Delivery findByDcId(Long dcId) {
         return comment_deliveryRepository.findByDcId(dcId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST));
+    }
+
+    public void waitToFinish(Delivery delivery) {
+        // ### 마감할 때 대기 중인 신청글을 모두 FINISHED 처리 ###
+        // 마감된 배달 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
+        List<Comment_Delivery> waitingComments = comment_deliveryRepository.findByDeliveryAndState(delivery, ApplyState.WAITING);
+        waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
+        comment_deliveryRepository.saveAll(waitingComments);
     }
 }

@@ -45,10 +45,7 @@ public class TaxiService {
                     .map(taxi -> {
                         taxi.setState(PostState.FINISHED);
 
-                        // 마감된 택시 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
-                        List<Comment_Taxi> waitingComments = comment_taxiRepository.findByTaxiAndState(taxi, ApplyState.WAITING);
-                        waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
-                        comment_taxiRepository.saveAll(waitingComments);
+                        waitToFinish(taxi); // 나머지 신청글 마감처리
 
                         return taxi;
                     })
@@ -79,11 +76,7 @@ public class TaxiService {
         LocalDateTime currentTime = LocalDateTime.now();
         if (taxi.getDue().isBefore(currentTime)) {
             taxi.setState(PostState.FINISHED);
-
-            // 마감된 택시 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
-            List<Comment_Taxi> waitingComments = comment_taxiRepository.findByTaxiAndState(taxi, ApplyState.WAITING);
-            waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
-            comment_taxiRepository.saveAll(waitingComments);
+            waitToFinish(taxi); // 나머지 신청글 마감처리
         }
 
         // 409 - 삭제된 글
@@ -251,11 +244,7 @@ public class TaxiService {
             taxi.setState(PostState.FINISHED);
             taxiRepository.save(taxi);
 
-            // ### 마감할 때 신청글을 모두 FINISHED 처리 ###
-            // 마감된 택시 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
-            List<Comment_Taxi> waitingComments = comment_taxiRepository.findByTaxiAndState(taxi, ApplyState.WAITING);
-            waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
-            comment_taxiRepository.saveAll(waitingComments);
+            waitToFinish(taxi); // 나머지 신청글 마감처리
 
             return true;
         }
@@ -373,8 +362,11 @@ public class TaxiService {
             optTaxi.get().setCurrent(current + number);
 
             // 만약 current + number == max => 마감 => state를 FINISHED로 업데이트
-            if(optTaxi.get().getMax().equals(current + number))
+            if(optTaxi.get().getMax().equals(current + number)) {
                 optTaxi.get().setState(PostState.FINISHED);
+                Taxi taxi = optTaxi.get();
+                waitToFinish(taxi); // 나머지 신청글 마감처리
+            }
             taxiRepository.save(optTaxi.get());
 
             return true;
@@ -434,5 +426,13 @@ public class TaxiService {
     public Comment_Taxi findByTcId(Long tcId) {
         return comment_taxiRepository.findByTcId(tcId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST));
+    }
+
+    public void waitToFinish(Taxi taxi) {
+        // ### 마감할 때 신청글을 모두 FINISHED 처리 ###
+        // 마감된 택시 모집 글에 따른 신청글 => state가 ApplyState.WAITING인 글의 state를 FINISHED로 변경
+        List<Comment_Taxi> waitingComments = comment_taxiRepository.findByTaxiAndState(taxi, ApplyState.WAITING);
+        waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
+        comment_taxiRepository.saveAll(waitingComments);
     }
 }

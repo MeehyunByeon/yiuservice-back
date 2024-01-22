@@ -1,6 +1,7 @@
 package yiu.aisl.yiuservice.config;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import yiu.aisl.yiuservice.domain.User;
 
@@ -10,17 +11,26 @@ import java.util.Collections;
 // UserDetails를 사용하면 아래의 메소드명을 변경하면 안됨
 public class CustomUserDetails implements UserDetails {
     private final User user;
+    private String role;
 
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
+    }
 
     public CustomUserDetails(User user) {
         this.user = user;
     }
     public final User getUser() {
         return user;
-    }
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
     }
 
     public Long getStudentId() {

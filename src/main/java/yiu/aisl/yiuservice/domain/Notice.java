@@ -18,7 +18,7 @@ public class Notice {
     @Column(unique = true)
     private Long noticeId;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 100)
     private String title;
 
     @Column(columnDefinition = "TEXT")

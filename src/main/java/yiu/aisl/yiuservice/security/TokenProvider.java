@@ -36,6 +36,14 @@ public class TokenProvider {
 
     private Key secretKey;
 
+    @Value("${admin.studentId1}")
+    private Long admin1;
+    @Value("${admin.studentId2}")
+    private Long admin2;
+    @Value("${admin.studentId3}")
+    private Long admin3;
+
+
     // 만료시간 : 30분
 //    private final long exp = 500L * 60 * 60;
 
@@ -53,15 +61,22 @@ public class TokenProvider {
     public String createToken(User user) {
         Date now = new Date();
 
-        return Jwts.builder()
+        JwtBuilder jwtBuilder = Jwts.builder()
                 .setIssuer(jwtProperties.getIssuer())
                 .setIssuedAt(now)
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenValidTime))
                 .setSubject(user.getNickname())
                 .claim("studentId", user.getStudentId())
                 .claim("nickname", user.getNickname())
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
+                .signWith(secretKey, SignatureAlgorithm.HS256);
+
+        if(user.getStudentId().equals(admin1)
+                || user.getStudentId().equals(admin2)
+                || user.getStudentId().equals(admin3))
+            jwtBuilder.claim("role", "ADMIN");
+        else jwtBuilder.claim("role", "USER");
+
+        return jwtBuilder .compact();
     }
 
     // 권한정보 획득

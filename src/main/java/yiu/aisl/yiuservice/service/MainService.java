@@ -32,10 +32,13 @@ public class MainService {
     private final PasswordEncoder passwordEncoder;
     private final TokenRepository tokenRepository;
     private final TokenProvider tokenProvider;
+
     private final DeliveryRepository deliveryRepository;
     private final Comment_DeliveryRepository comment_deliveryRepository;
     private final TaxiRepository taxiRepository;
     private final Comment_TaxiRepository comment_taxiRepository;
+
+    private final NoticeRepository noticeRepository;
 //    private final TokenService tokenService;
 
     private final JavaMailSender javaMailSender;
@@ -102,10 +105,16 @@ public class MainService {
             taxiGetListDTO.addAll(listTaxiDeleted.stream().map(TaxiResponse::GetTaxiDTO).collect(Collectors.toList()));
             taxiGetListDTO.addAll(listTaxiFinished.stream().map(TaxiResponse::GetTaxiDTO).collect(Collectors.toList()));
 
+            // Notice
+            List<Notice> notice = noticeRepository.findAllByOrderByCreatedAtDesc();
+            List<NoticeResponse> noticeGetListDTO = new ArrayList<>();
+            notice.forEach(s -> noticeGetListDTO.add(NoticeResponse.GetNoticeDTO(s)));
+
             // result
             Map<String, List<?>> response = new HashMap<>();
             response.put("delivery", deliveryGetListDTO);
             response.put("taxi", taxiGetListDTO);
+            response.put("notice", noticeGetListDTO);
 
             return response;
         } catch (Exception e) {

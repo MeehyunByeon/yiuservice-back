@@ -36,7 +36,7 @@ public class NoticeService {
     // 전체 공지사항 조회 [all]
     @Transactional
     public List<NoticeResponse> getList() throws Exception {
-        List<Notice> notice = noticeRepository.findAll();
+        List<Notice> notice = noticeRepository.findAllByOrderByCreatedAtDesc();
         List<NoticeResponse> getListDTO = new ArrayList<>();
         notice.forEach(s -> getListDTO.add(NoticeResponse.GetNoticeDTO(s)));
         return getListDTO;

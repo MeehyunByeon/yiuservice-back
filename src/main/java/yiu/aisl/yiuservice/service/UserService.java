@@ -128,6 +128,9 @@ public class UserService {
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
 
+            // Sort the combined list
+            combinedList.sort(comparator);
+
             return combinedList;
         } catch (Exception e) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);

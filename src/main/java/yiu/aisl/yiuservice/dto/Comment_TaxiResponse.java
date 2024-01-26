@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import yiu.aisl.yiuservice.domain.*;
 import yiu.aisl.yiuservice.domain.state.ApplyState;
+import yiu.aisl.yiuservice.domain.state.PostState;
 
 import java.time.LocalDateTime;
 
@@ -36,6 +37,9 @@ public class Comment_TaxiResponse implements ActiveEntity {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+    
+    private TaxiResponse taxi;
+
 
     public static Comment_TaxiResponse GetCommentTaxiDTO(Comment_Taxi comment_taxi) {
         return new Comment_TaxiResponse(
@@ -47,7 +51,8 @@ public class Comment_TaxiResponse implements ActiveEntity {
                 comment_taxi.getNumber(),
                 comment_taxi.getState(),
                 comment_taxi.getCreatedAt(),
-                comment_taxi.getUpdatedAt()
+                comment_taxi.getUpdatedAt(),
+                TaxiResponse.GetTaxiDTO(comment_taxi.getTaxi())
         );
     }
 }

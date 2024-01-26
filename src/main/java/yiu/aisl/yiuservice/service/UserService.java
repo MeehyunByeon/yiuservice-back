@@ -83,11 +83,14 @@ public class UserService {
                     .filter(comment -> comment.getState() == ApplyState.ACCEPTED && comment.getDelivery().getDue().isAfter(currentTime))
                     .collect(Collectors.toList());
             List<ActiveEntity> commentDeliveryGetListDTO = Stream.concat(
-                            listCommentDeliveryWaiting.stream(),
-                            listCommentDeliveryAccepted.stream()
-                    ).map(Comment_DeliveryResponse::GetCommentDeliveryDTO)
-                    .sorted(comparator)
-                    .collect(Collectors.toList());
+                    listCommentDeliveryWaiting.stream(),
+                    listCommentDeliveryAccepted.stream()
+            ).map(comment -> {
+                Comment_DeliveryResponse dto = Comment_DeliveryResponse.GetCommentDeliveryDTO(comment);
+                // Convert Delivery to DeliveryResponse and set it
+                dto.setDelivery(DeliveryResponse.GetDeliveryDTO(comment.getDelivery()));
+                return dto;
+            }).sorted(comparator).collect(Collectors.toList());
 
             // Taxi
             List<Taxi> listTaxiActive = taxiRepository.findByUser(user);
@@ -119,9 +122,12 @@ public class UserService {
             List<ActiveEntity> commentTaxiGetListDTO = Stream.concat(
                             listCommentTaxiWaiting.stream(),
                             listCommentTaxiAccepted.stream()
-                    ).map(Comment_TaxiResponse::GetCommentTaxiDTO)
-                    .sorted(comparator)
-                    .collect(Collectors.toList());
+            ).map(comment -> {
+                Comment_TaxiResponse dto = Comment_TaxiResponse.GetCommentTaxiDTO(comment);
+                // Convert Taxi to TaxiResponse and set it
+                dto.setTaxi(TaxiResponse.GetTaxiDTO(comment.getTaxi()));
+                return dto;
+            }).sorted(comparator).collect(Collectors.toList());
 
             // Combine all lists into one
             List<ActiveEntity> combinedList = Stream.of(deliveryGetListDTO, commentDeliveryGetListDTO, taxiGetListDTO, commentTaxiGetListDTO)

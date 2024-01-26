@@ -11,8 +11,11 @@ import yiu.aisl.yiuservice.domain.Comment_Delivery;
 import yiu.aisl.yiuservice.domain.Delivery;
 import yiu.aisl.yiuservice.domain.User;
 import yiu.aisl.yiuservice.domain.state.ApplyState;
+import yiu.aisl.yiuservice.domain.state.PostState;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -34,6 +37,8 @@ public class Comment_DeliveryResponse implements ActiveEntity {
 
     private LocalDateTime updatedAt;
 
+    private DeliveryResponse delivery;
+
     public static Comment_DeliveryResponse GetCommentDeliveryDTO(Comment_Delivery comment_delivery) {
         return new Comment_DeliveryResponse(
                 comment_delivery.getDcId(),
@@ -43,7 +48,8 @@ public class Comment_DeliveryResponse implements ActiveEntity {
                 comment_delivery.getDetails(),
                 comment_delivery.getState(),
                 comment_delivery.getCreatedAt(),
-                comment_delivery.getUpdatedAt()
+                comment_delivery.getUpdatedAt(),
+                DeliveryResponse.GetDeliveryDTO(comment_delivery.getDelivery())
         );
     }
 }

@@ -35,6 +35,12 @@ public class UserController {
         return new ResponseEntity<List <ActiveEntity>>(userService.getMyActiveList(user.getStudentId()), HttpStatus.OK);
     }
 
+    // 내 모든 글 조회
+    @GetMapping("/post")
+    public ResponseEntity<List <ActiveEntity>> getMyAllPostList(@AuthenticationPrincipal CustomUserDetails user) throws Exception {
+        return new ResponseEntity<List <ActiveEntity>>(userService.getMyAllPostList(user.getStudentId()), HttpStatus.OK);
+    }
+
     // 닉네임 변경
     @PostMapping(value = "/changenick", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Boolean> changeNickname(@AuthenticationPrincipal CustomUserDetails user, ChangeNicknameRequestDTO request) throws Exception {

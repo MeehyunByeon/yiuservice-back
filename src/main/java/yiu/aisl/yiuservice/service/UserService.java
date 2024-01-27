@@ -143,6 +143,50 @@ public class UserService {
         }
     }
 
+    // <API> 내 모든 글 조회
+    @Transactional
+    public List<ActiveEntity> getMyAllPostList(Long studentId) throws Exception {
+        User user = findByStudentId(studentId);
+
+        try {
+            LocalDateTime currentTime = LocalDateTime.now();
+            LocalDateTime weekAgo = currentTime.minusDays(7);
+            Comparator<ActiveEntity> comparator = Comparator.comparing(
+                    ActiveEntity::getCreatedAt).reversed();
+
+            // All lists
+            List<ActiveEntity> allDeliveryList = deliveryRepository.findByUser(user).stream()
+                    .map(DeliveryResponse::GetDeliveryDTO)
+                    .collect(Collectors.toList());
+            List<ActiveEntity> allCommentDeliveryList = comment_deliveryRepository.findByUser(user).stream()
+                    .map(Comment_DeliveryResponse::GetCommentDeliveryDTO)
+                    .collect(Collectors.toList());
+            List<ActiveEntity> allTaxiList = taxiRepository.findByUser(user).stream()
+                    .map(TaxiResponse::GetTaxiDTO)
+                    .collect(Collectors.toList());
+            List<ActiveEntity> allCommentTaxiList = comment_taxiRepository.findByUser(user).stream()
+                    .map(Comment_TaxiResponse::GetCommentTaxiDTO)
+                    .collect(Collectors.toList());
+
+            // Combine all lists into one
+            List<ActiveEntity> allList = Stream.of(allDeliveryList, allCommentDeliveryList, allTaxiList, allCommentTaxiList)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+
+            // Filter the list to include only the posts from the last 7 days
+            List<ActiveEntity> recentList = allList.stream()
+                    .filter(entity -> entity.getCreatedAt().isAfter(weekAgo))
+                    .collect(Collectors.toList());
+
+            // Sort the list
+            recentList.sort(comparator);
+
+            return recentList;
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
 
 

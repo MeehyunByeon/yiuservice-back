@@ -154,17 +154,49 @@ public class UserService {
             Comparator<ActiveEntity> comparator = Comparator.comparing(
                     ActiveEntity::getCreatedAt).reversed();
 
+            // Delivery
+            List<Delivery> listDeliveryActive = deliveryRepository.findByUser(user);
+            for(Delivery delivery : listDeliveryActive) {
+                if(delivery.getDue().isBefore(currentTime)) {
+                    delivery.setState(PostState.FINISHED);
+                    deliveryRepository.save(delivery);
+                    List<Comment_Delivery> comments = comment_deliveryRepository.findByDelivery(delivery);
+                    for(Comment_Delivery comment : comments) {
+                        comment.setState(ApplyState.FINISHED);
+                        comment_deliveryRepository.save(comment);
+                    }
+                }
+            }
+
+            // Taxi
+            List<Taxi> listTaxiActive = taxiRepository.findByUser(user);
+            for(Taxi taxi : listTaxiActive) {
+                if(taxi.getDue().isBefore(currentTime)) {
+                    taxi.setState(PostState.FINISHED);
+                    taxiRepository.save(taxi);
+                    List<Comment_Taxi> comments = comment_taxiRepository.findByTaxi(taxi);
+                    for(Comment_Taxi comment : comments) {
+                        comment.setState(ApplyState.FINISHED);
+                        comment_taxiRepository.save(comment);
+                    }
+                }
+            }
+
             // All lists
             List<ActiveEntity> allDeliveryList = deliveryRepository.findByUser(user).stream()
+                    .filter(deliveryResponse -> deliveryResponse.getState() != PostState.DELETED)
                     .map(DeliveryResponse::GetDeliveryDTO)
                     .collect(Collectors.toList());
             List<ActiveEntity> allCommentDeliveryList = comment_deliveryRepository.findByUser(user).stream()
+                    .filter(commentDeliveryResponse -> commentDeliveryResponse.getState() != ApplyState.CANCELED)
                     .map(Comment_DeliveryResponse::GetCommentDeliveryDTO)
                     .collect(Collectors.toList());
             List<ActiveEntity> allTaxiList = taxiRepository.findByUser(user).stream()
+                    .filter(taxiResponse -> taxiResponse.getState() != PostState.DELETED)
                     .map(TaxiResponse::GetTaxiDTO)
                     .collect(Collectors.toList());
             List<ActiveEntity> allCommentTaxiList = comment_taxiRepository.findByUser(user).stream()
+                    .filter(commentTaxiResponse -> commentTaxiResponse.getState() != ApplyState.CANCELED)
                     .map(Comment_TaxiResponse::GetCommentTaxiDTO)
                     .collect(Collectors.toList());
 
@@ -186,6 +218,7 @@ public class UserService {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
 

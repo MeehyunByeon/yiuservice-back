@@ -76,7 +76,7 @@ public class TokenProvider {
             jwtBuilder.claim("role", "ADMIN");
         else jwtBuilder.claim("role", "USER");
 
-        return jwtBuilder .compact();
+        return jwtBuilder.compact();
     }
 
     // 권한정보 획득

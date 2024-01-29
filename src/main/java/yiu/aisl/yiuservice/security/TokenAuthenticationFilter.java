@@ -28,14 +28,11 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter{
 
         // 가져온 값에서 접두사 제거
         String token = getAccessToken(authorizationHeader);
-//        System.out.println("doFilterInternal: "+ token);
 
         // 가져온 토큰이 유효한지 확인하고, 유효한 때는 인증 정보 설정
         // => 시큐리티 컨텍스트에 인증 정보를 설정
-//        System.out.println("유효한가? : "+ tokenProvider.validToken(token));
         if(token != null && tokenProvider.validToken(token)) {
             Authentication authentication = tokenProvider.getAuthentication(token);
-//            System.out.println("authentication: "+ authentication.getPrincipal());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

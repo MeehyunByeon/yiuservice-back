@@ -1,5 +1,6 @@
 package yiu.aisl.yiuservice.service;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
@@ -217,6 +218,37 @@ public class MainService {
         return true;
     }
 
+    // <API - 리프레시>
+    public TokenDto refreshAccessToken(TokenDto token) throws Exception {
+        Long studentId = null;
+        try {
+            studentId = tokenProvider.getStudentId(token.getAccessToken());
+        } catch (ExpiredJwtException e) {
+            studentId = e.getClaims().get("studentId", Long.class);
+        }
+
+        User user = userRepository.findByStudentId(studentId).orElseThrow(() ->
+                new CustomException(ErrorCode.MEMBER_NOT_EXIST));
+
+        Token refreshToken = validRefreshToken(user, token.getRefreshToken());
+
+        try {
+            if (refreshToken != null) {
+                return TokenDto.builder()
+                        .accessToken(tokenProvider.createToken(user))
+                        .refreshToken(refreshToken.getRefreshToken())
+                        .build();
+            } else {
+                throw new CustomException(ErrorCode.LOGIN_REQUIRED);
+            }
+        }
+        catch (Exception e) {
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
     // 학번으로 유저의 정보를 가져오는 메서드
     public User findByStudentId(Long studentId) {
         return userRepository.findByStudentId(studentId)
@@ -305,11 +337,13 @@ public class MainService {
     }
 
     public Token validRefreshToken(User user, String refreshToken) throws Exception {
+        System.out.println("1");
         Token token = tokenRepository.findById(user.getStudentId())
                 .orElseThrow(() -> new CustomException(ErrorCode.LOGIN_REQUIRED));
-
+        System.out.println("2");
         // 해당유저의 Refresh 토큰 만료 : Redis에 해당 유저의 토큰이 존재하지 않음
         if (token.getRefreshToken() == null) throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        System.out.println("3");
         try {
             // 리프레시 토큰 만료일자가 얼마 남지 않았을 때 만료시간 연장..?
             if (token.getExpiration() < 10) {
@@ -319,30 +353,12 @@ public class MainService {
 
             // 토큰이 같은지 비교
             if (!token.getRefreshToken().equals(refreshToken)) {
+                System.out.println("4");
                 // 원래 null
                 throw new CustomException(ErrorCode.LOGIN_REQUIRED);
             } else {
+                System.out.println("5");
                 return token;
-            }
-        }
-        catch (Exception e) {
-            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
-        }
-    }
-    public TokenDto refreshAccessToken(TokenDto token) throws Exception {
-        Long studentId = tokenProvider.getStudentId(token.getAccessToken());
-        User user = userRepository.findByStudentId(studentId).orElseThrow(() ->
-                new CustomException(ErrorCode.MEMBER_NOT_EXIST));
-        Token refreshToken = validRefreshToken(user, token.getRefreshToken());
-
-        try {
-            if (refreshToken != null) {
-                return TokenDto.builder()
-                        .accessToken(tokenProvider.createToken(user))
-                        .refreshToken(refreshToken.getRefreshToken())
-                        .build();
-            } else {
-                throw new CustomException(ErrorCode.LOGIN_REQUIRED);
             }
         }
         catch (Exception e) {

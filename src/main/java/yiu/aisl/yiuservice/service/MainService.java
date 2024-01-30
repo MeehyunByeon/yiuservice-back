@@ -267,7 +267,7 @@ public class MainService {
         return token.getRefreshToken();
     }
 
-    //실제 메일 전송
+    // <API> - 메일 전송
     public String sendEmail(String email) throws MessagingException, UnsupportedEncodingException {
         // 400 - 데이터 없음
         if(email == null) throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
@@ -275,6 +275,23 @@ public class MainService {
         // 409 - 해당 학번의 회원 존재 => 중복
         if (userRepository.findByStudentId(Long.parseLong(email)).isPresent())
             throw new CustomException(ErrorCode.DUPLICATE);
+
+        //메일전송에 필요한 정보 설정
+        MimeMessage emailForm = createEmailForm(email+"@yiu.ac.kr");
+        //실제 메일 전송
+        javaMailSender.send(emailForm);
+
+        return authNum; //인증 코드 반환
+    }
+
+    // <API> - 실제 메일 전송(비밀번호 재설정 시)
+    public String sendEmailWhenPwdChanges(String email) throws MessagingException, UnsupportedEncodingException {
+        // 400 - 데이터 없음
+        if(email == null) throw new CustomException(ErrorCode.INSUFFICIENT_DATA);
+
+        // 404 - 해당 학번 존재하지 않음
+        User user = userRepository.findByStudentId(Long.parseLong(email)).orElseThrow(() ->
+                new CustomException(ErrorCode.MEMBER_NOT_EXIST));
 
         //메일전송에 필요한 정보 설정
         MimeMessage emailForm = createEmailForm(email+"@yiu.ac.kr");

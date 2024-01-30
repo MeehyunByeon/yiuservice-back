@@ -49,6 +49,11 @@ public class MainController {
         return new ResponseEntity<String>(mainService.sendEmail(request.getEmail()), HttpStatus.OK);
     }
 
+    @PostMapping(value = "/changepwd/mail", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<String> sendMailWhenPwdChanges(SendEmailRequestDTO request) throws MessagingException, UnsupportedEncodingException {
+        return new ResponseEntity<String>(mainService.sendEmailWhenPwdChanges(request.getEmail()), HttpStatus.OK);
+    }
+
     @PostMapping(value = "/nickcheck", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Boolean> checkNickname (CheckNicknameRequestDTO request) throws Exception {
         return new ResponseEntity<Boolean>(mainService.checkNickname(request), HttpStatus.OK);

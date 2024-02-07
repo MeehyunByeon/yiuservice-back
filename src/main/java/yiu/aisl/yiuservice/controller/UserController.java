@@ -26,24 +26,28 @@ public class UserController {
     // 내 정보 조회
     @GetMapping(value = "/mypage")
     public ResponseEntity<UserResponse> getMyInfo(@AuthenticationPrincipal CustomUserDetails user) throws Exception {
+        System.out.println("API - /user/mypage");
         return new ResponseEntity<UserResponse>(userService.getMyInfo(user.getStudentId()), HttpStatus.OK);
     }
 
     // 내 활성화 글 조회
     @GetMapping("/active")
     public ResponseEntity<List <ActiveEntity>> getActiveList(@AuthenticationPrincipal CustomUserDetails user) throws Exception {
+        System.out.println("API - /user/active");
         return new ResponseEntity<List <ActiveEntity>>(userService.getMyActiveList(user.getStudentId()), HttpStatus.OK);
     }
 
     // 내 모든 글 조회
     @GetMapping("/post")
     public ResponseEntity<List <ActiveEntity>> getMyAllPostList(@AuthenticationPrincipal CustomUserDetails user) throws Exception {
+        System.out.println("API - /user/post");
         return new ResponseEntity<List <ActiveEntity>>(userService.getMyAllPostList(user.getStudentId()), HttpStatus.OK);
     }
 
     // 닉네임 변경
     @PostMapping(value = "/changenick", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Boolean> changeNickname(@AuthenticationPrincipal CustomUserDetails user, ChangeNicknameRequestDTO request) throws Exception {
+        System.out.println("API - /user/changenick");
         return new ResponseEntity<Boolean>(userService.changeNickname(user.getStudentId(), request), HttpStatus.OK);
     }
 

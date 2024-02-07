@@ -26,12 +26,14 @@ public class ReportController {
     // 전체 신고 조회 [admin]
     @GetMapping
     public ResponseEntity<List> getList() throws Exception {
+        System.out.println("API - /report");
         return new ResponseEntity<List>(reportService.getList(), HttpStatus.OK);
     }
 
     // 신고 작성 [user]
     @PostMapping(value = "/create", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Boolean> create(@AuthenticationPrincipal CustomUserDetails user, ReportRequest.CreateDTO request) throws Exception {
+        System.out.println("API - /report/create");
         return new ResponseEntity<Boolean>(reportService.create(user.getStudentId(), request), HttpStatus.OK);
     }
 }

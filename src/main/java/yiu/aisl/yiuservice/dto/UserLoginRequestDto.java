@@ -10,4 +10,6 @@ public class UserLoginRequestDto {
     private Long studentId;
 
     private String pwd;
+
+    private String fcm;
 }

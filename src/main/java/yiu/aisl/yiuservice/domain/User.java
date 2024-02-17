@@ -69,6 +69,10 @@ public class User {
         this.refreshToken = refreshToken;
     }
 
+    public void setFcm(String fcm) {
+        this.fcm = fcm;
+    }
+
     public User(Long studentId, String refreshToken) {
         this.studentId = studentId;
         this.refreshToken = refreshToken;

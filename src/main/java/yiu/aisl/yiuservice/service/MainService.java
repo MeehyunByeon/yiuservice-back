@@ -1,5 +1,9 @@
 package yiu.aisl.yiuservice.service;
 
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -29,6 +33,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MainService {
 
+    private final FirebaseMessaging firebaseMessaging;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenRepository tokenRepository;
@@ -43,12 +48,35 @@ public class MainService {
 //    private final TokenService tokenService;
 
     private final JavaMailSender javaMailSender;
-    private static final String senderMail = "bmh2038@naver.com";
     private static int number;
     private static String authNum;
 
 //    private final long exp = 1000L * 60 * 60 * 24 * 14; // 14일
     private long exp_refreshToken = Duration.ofDays(14).toMillis(); // 만료시간 2주
+
+
+    // 푸시 알림 테스트
+    @Transactional
+    public void pushTest() throws Exception {
+        User user = userRepository.findByStudentId(202033013L).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));
+        String fcm = user.getFcm();
+
+        Notification notification = Notification.builder()
+                .setTitle("안녕")
+                .setBody("지금은 새벽 3시야ㅎㅎ")
+                .build();
+
+        Message message = Message.builder()
+                .setToken(fcm)
+                .setNotification(notification)
+                .build();
+        
+        try {
+            firebaseMessaging.send(message);
+        } catch (FirebaseMessagingException e) {
+            e.printStackTrace();
+        }
+    }
 
     // 메인 데이터 조회 [all]
     @Transactional
@@ -182,6 +210,7 @@ public class MainService {
         try {
             // 리프레시 토큰 생성
             user.setRefreshToken(createRefreshToken(user));
+            user.setFcm(request.getFcm());
             // String accessToken = tokenProvider.generateToken(user, Duration.ofHours(2));
             UserLoginResponseDto response = UserLoginResponseDto.builder()
                     .studentId(user.getStudentId())

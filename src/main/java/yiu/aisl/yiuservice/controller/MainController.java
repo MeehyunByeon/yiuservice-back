@@ -30,8 +30,9 @@ public class MainController {
     private final TokenProvider tokenProvider;
 
     @GetMapping("/test")
-    public String test() {
-        throw new DuplicateFormatFlagsException("Dddd");
+    public void test() throws Exception{
+        System.out.println("push test API");
+        mainService.pushTest();
     }
 
     @GetMapping("/main")

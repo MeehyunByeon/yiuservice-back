@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum EntityCode {
-
+    NOTICE(0), // 공지사항
     DELIVERY(1), // 배달
     DELIVERY_CMT(2), // 배달 신청
     TAXI(3), // 택시

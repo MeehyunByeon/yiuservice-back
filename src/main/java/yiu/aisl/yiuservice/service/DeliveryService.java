@@ -1,16 +1,18 @@
 package yiu.aisl.yiuservice.service;
 
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.catalina.security.SecurityUtil;
 import org.aspectj.weaver.ast.Not;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import yiu.aisl.yiuservice.domain.Comment_Delivery;
-import yiu.aisl.yiuservice.domain.Comment_Taxi;
-import yiu.aisl.yiuservice.domain.Delivery;
-import yiu.aisl.yiuservice.domain.User;
+import yiu.aisl.yiuservice.domain.*;
 import yiu.aisl.yiuservice.domain.state.ApplyState;
+import yiu.aisl.yiuservice.domain.state.EntityCode;
 import yiu.aisl.yiuservice.domain.state.PostState;
 import yiu.aisl.yiuservice.dto.DeliveryRequest;
 import yiu.aisl.yiuservice.dto.DeliveryResponse;
@@ -18,6 +20,7 @@ import yiu.aisl.yiuservice.exception.CustomException;
 import yiu.aisl.yiuservice.exception.ErrorCode;
 import yiu.aisl.yiuservice.repository.Comment_DeliveryRepository;
 import yiu.aisl.yiuservice.repository.DeliveryRepository;
+import yiu.aisl.yiuservice.repository.PushRepository;
 import yiu.aisl.yiuservice.repository.UserRepository;
 import yiu.aisl.yiuservice.security.TokenProvider;
 
@@ -34,10 +37,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DeliveryService {
 
+    private final FirebaseMessaging firebaseMessaging;
     private final DeliveryRepository deliveryRepository;
     private final Comment_DeliveryRepository comment_deliveryRepository;
     private final UserRepository userRepository;
-    private final TokenProvider tokenProvider;
+    private final PushRepository pushRepository;
 
     // 전체 배달모집글 조회 [all]
     @Transactional
@@ -248,7 +252,6 @@ public class DeliveryService {
             Delivery delivery = optDelivery.get();
             delivery.setState(PostState.FINISHED);
             deliveryRepository.save(delivery);
-
             waitToFinish(delivery); // 대기 신청글 => 마감처리
 
             return true;
@@ -256,6 +259,8 @@ public class DeliveryService {
         catch (Exception e) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
+
+
     }
 
     // 배달모집 신청 [applicant]
@@ -292,6 +297,11 @@ public class DeliveryService {
                     .state(request.getState())
                     .build();
             comment_deliveryRepository.save(comment);
+
+            Long receiver = delivery.getUser().getStudentId(); // 모집자
+            String title = "같이 배달 New 신청";
+            String contents = user.getNickname() + "님께서 <" + delivery.getTitle() + "> 같이 배달을 신청했어요!";
+            sendPush(receiver, delivery.getDId(), title, contents);
         }
         catch (Exception e) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
@@ -353,6 +363,12 @@ public class DeliveryService {
             Comment_Delivery comment_delivery = optComment_Delivery.get();
             comment_delivery.setState(ApplyState.ACCEPTED);
             comment_deliveryRepository.save(comment_delivery);
+
+            Long receiver = optComment_Delivery.get().getUser().getStudentId(); // 신청자
+            String title = "같이 배달 신청 수락";
+            String contents = user.getNickname() + "님께서 <" + optDelivery.get().getTitle() + "> 같이 배달을 수락했어요!";
+            sendPush(receiver, optDelivery.get().getDId(), title, contents);
+
             return true;
         }
         catch (Exception e) {
@@ -385,6 +401,11 @@ public class DeliveryService {
             Comment_Delivery comment_delivery = optComment_Delivery.get();
             comment_delivery.setState(ApplyState.REJECTED);
             comment_deliveryRepository.save(comment_delivery);
+
+            Long receiver = optComment_Delivery.get().getUser().getStudentId(); // 신청자
+            String title = "같이 배달 신청 거절";
+            String contents = user.getNickname() + "님께서 <" + delivery.getTitle() + "> 같이 배달을 거절했어요!";
+            sendPush(receiver, delivery.getDId(), title, contents);
             return true;
         }
         catch (Exception e) {
@@ -416,5 +437,37 @@ public class DeliveryService {
         List<Comment_Delivery> waitingComments = comment_deliveryRepository.findByDeliveryAndState(delivery, ApplyState.WAITING);
         waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
         comment_deliveryRepository.saveAll(waitingComments);
+    }
+
+    // 푸시 처리
+    public void sendPush(Long studentId, Long id, String title, String contents) throws Exception {
+        User user = userRepository.findByStudentId(studentId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));
+        String fcm = user.getFcm();
+
+        Notification notification = Notification.builder()
+                .setTitle(title)
+                .setBody(contents)
+                .build();
+
+        Message message = Message.builder()
+                .setToken(fcm)
+                .setNotification(notification)
+                .build();
+
+        try {
+            // 알림 보내기
+            firebaseMessaging.send(message);
+
+            // 알림 내역 저장
+            Push push = Push.builder()
+                    .user(user)
+                    .type(EntityCode.DELIVERY)
+                    .id(id)
+                    .contents(contents)
+                    .build();
+            pushRepository.save(push);
+        } catch (FirebaseMessagingException e) {
+            e.printStackTrace();
+        }
     }
 }

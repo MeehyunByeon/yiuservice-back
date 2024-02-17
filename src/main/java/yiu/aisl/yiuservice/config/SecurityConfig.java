@@ -64,7 +64,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 // 회원가입, 로그인은 모두 승인
-                                .requestMatchers("/main", "/login", "/join", "/nickcheck", "/mail", "/refresh", "/changepwd/mail", "/changepwd", "/token").permitAll()
+                                .requestMatchers("/test", "/main", "/login", "/join", "/nickcheck", "/mail", "/refresh", "/changepwd/mail", "/changepwd", "/token").permitAll()
                                 .requestMatchers("/delivery", "/delivery/detail", "/taxi", "/taxi/detail", "/notice", "/notice/detail").permitAll()
                                 .requestMatchers("/delivery/**").authenticated()
                                 .requestMatchers("/taxi/**").authenticated()

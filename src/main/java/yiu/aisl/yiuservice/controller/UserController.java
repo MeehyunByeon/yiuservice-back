@@ -51,4 +51,11 @@ public class UserController {
         return new ResponseEntity<Boolean>(userService.changeNickname(user.getStudentId(), request), HttpStatus.OK);
     }
 
+    // 내 모든 글 조회
+    @GetMapping("/push")
+    public ResponseEntity<List> getMyAllPushList(@AuthenticationPrincipal CustomUserDetails user) throws Exception {
+        System.out.println("API - /user/push");
+        return new ResponseEntity<List>(userService.getMyAllPushList(user.getStudentId()), HttpStatus.OK);
+    }
+
 }

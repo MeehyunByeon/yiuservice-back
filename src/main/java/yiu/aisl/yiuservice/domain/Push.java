@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import yiu.aisl.yiuservice.domain.state.EntityCode;
 
 import java.time.LocalDateTime;
 
@@ -23,7 +24,7 @@ public class Push {
     private User user;
 
     @Column
-    private Byte type;
+    private EntityCode type;
 
     @Column
     private Long id;

@@ -27,6 +27,7 @@ public class UserService {
     private final Comment_DeliveryRepository comment_deliveryRepository;
     private final TaxiRepository taxiRepository;
     private final Comment_TaxiRepository comment_taxiRepository;
+    private final PushRepository pushRepository;
 
     // <API> 내 정보 조회
     @Transactional
@@ -220,9 +221,6 @@ public class UserService {
     }
 
 
-
-
-
     // <API> 닉네임 재설정
     @Transactional
     public Boolean changeNickname(Long studentId, ChangeNicknameRequestDTO request) {
@@ -246,6 +244,16 @@ public class UserService {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
         return true;
+    }
+
+    // <API> 푸시 내역
+    @Transactional
+    public List<PushResponse> getMyAllPushList(Long studentId) throws Exception {
+        User user = findByStudentId(studentId);
+        List<Push> push = pushRepository.findByUser(user);
+        List<PushResponse> getListDTO = new ArrayList<>();
+        push.forEach(s -> getListDTO.add(PushResponse.GetPushDTO(s)));
+        return getListDTO;
     }
 
     // 학번으로 유저의 정보를 가져오는 메서드

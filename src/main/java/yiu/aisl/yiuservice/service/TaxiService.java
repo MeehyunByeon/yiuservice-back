@@ -1,10 +1,15 @@
 package yiu.aisl.yiuservice.service;
 
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import yiu.aisl.yiuservice.domain.*;
 import yiu.aisl.yiuservice.domain.state.ApplyState;
+import yiu.aisl.yiuservice.domain.state.EntityCode;
 import yiu.aisl.yiuservice.domain.state.PostState;
 import yiu.aisl.yiuservice.dto.*;
 import yiu.aisl.yiuservice.dto.TaxiRequest;
@@ -25,10 +30,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TaxiService {
 
+    private final FirebaseMessaging firebaseMessaging;
     private final TaxiRepository taxiRepository;
     private final Comment_TaxiRepository comment_taxiRepository;
     private final UserRepository userRepository;
-    private final TokenProvider tokenProvider;
+    private final PushRepository pushRepository;
 
     // 전체 택시모집글 조회 [all]
     @Transactional
@@ -289,6 +295,11 @@ public class TaxiService {
                     .state(request.getState())
                     .build();
             comment_taxiRepository.save(comment);
+
+            Long receiver = taxi.getUser().getStudentId(); // 모집자
+            String title = "같이 택시 New 신청";
+            String contents = user.getNickname() + "님께서 <" + taxi.getTitle() + "> 같이 택시를 신청했어요!";
+            sendPush(receiver, taxi.getTId(), title, contents);
         }
         catch (Exception e) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
@@ -366,6 +377,11 @@ public class TaxiService {
                 optTaxi.get().setState(PostState.FINISHED);
                 Taxi taxi = optTaxi.get();
                 waitToFinish(taxi); // 나머지 신청글 마감처리
+
+                Long receiver = optComment_Taxi.get().getUser().getStudentId(); // 신청자
+                String title = "같이 택시 신청 수락";
+                String contents = user.getNickname() + "님께서 <" + taxi.getTitle() + "> 같이 택시를 수락했어요!";
+                sendPush(receiver, taxi.getTId(), title, contents);
             }
             taxiRepository.save(optTaxi.get());
 
@@ -403,6 +419,11 @@ public class TaxiService {
             Comment_Taxi comment_Taxi = optComment_Taxi.get();
             comment_Taxi.setState(ApplyState.REJECTED);
             comment_taxiRepository.save(comment_Taxi);
+
+            Long receiver = optComment_Taxi.get().getUser().getStudentId(); // 신청자
+            String title = "같이 택시 신청 거절";
+            String contents = user.getNickname() + "님께서 <" + taxi.getTitle() + "> 같이 택시를 거절했어요!";
+            sendPush(receiver, taxi.getTId(), title, contents);
             return true;
         }
         catch (Exception e) {
@@ -434,5 +455,37 @@ public class TaxiService {
         List<Comment_Taxi> waitingComments = comment_taxiRepository.findByTaxiAndState(taxi, ApplyState.WAITING);
         waitingComments.forEach(comment -> comment.setState(ApplyState.FINISHED));
         comment_taxiRepository.saveAll(waitingComments);
+    }
+
+    // 푸시 처리
+    public void sendPush(Long studentId, Long id, String title, String contents) throws Exception {
+        User user = userRepository.findByStudentId(studentId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));
+        String fcm = user.getFcm();
+
+        Notification notification = Notification.builder()
+                .setTitle(title)
+                .setBody(contents)
+                .build();
+
+        Message message = Message.builder()
+                .setToken(fcm)
+                .setNotification(notification)
+                .build();
+
+        try {
+            // 알림 보내기
+            firebaseMessaging.send(message);
+
+            // 알림 내역 저장
+            Push push = Push.builder()
+                    .user(user)
+                    .type(EntityCode.TAXI)
+                    .id(id)
+                    .contents(contents)
+                    .build();
+            pushRepository.save(push);
+        } catch (FirebaseMessagingException e) {
+            e.printStackTrace();
+        }
     }
 }

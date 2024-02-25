@@ -29,35 +29,30 @@ public class NoticeController {
     // 전체 공지사항 조회 [all]
     @GetMapping
     public ResponseEntity<List> getList() throws Exception {
-        System.out.println("API - /notice");
         return new ResponseEntity<List>(noticeService.getList(), HttpStatus.OK);
     }
 
     // 공지사항 상세조회 [all]
     @PostMapping(value = "/detail", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<NoticeResponse> getDetail(NoticeRequest.DetailDTO request) throws Exception {
-        System.out.println("API - /notice/detail");
         return new ResponseEntity<NoticeResponse>(noticeService.getDetail(request), HttpStatus.OK);
     }
 
     // 공지사항 작성 [writer]
     @PostMapping(value = "/create", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Boolean> create(@AuthenticationPrincipal CustomUserDetails user, NoticeRequest.CreateDTO request) throws Exception {
-        System.out.println("API - /notice/create");
         return new ResponseEntity<Boolean>(noticeService.create(request), HttpStatus.OK);
     }
 
     // 공지사항 수정 [writer]
     @PostMapping(value = "/update", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Boolean> update(@AuthenticationPrincipal CustomUserDetails user, NoticeRequest.UpdateDTO request) throws Exception {
-        System.out.println("API - /notice/update");
         return new ResponseEntity<Boolean>(noticeService.update(request), HttpStatus.OK);
     }
 
     // 공지사항 삭제 [writer]
     @PostMapping(value = "/delete", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Boolean> delete(@AuthenticationPrincipal CustomUserDetails user, NoticeRequest.noticeIdDTO request) throws Exception {
-        System.out.println("API - /notice/delete");
         return new ResponseEntity<Boolean>(noticeService.delete(request), HttpStatus.OK);
     }
 }

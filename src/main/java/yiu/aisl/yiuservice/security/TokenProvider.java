@@ -117,11 +117,9 @@ public class TokenProvider {
 
     // JWT 토큰 유효성 검증 메서드
     public boolean validToken(String token) {
-        System.out.println("validToken 시작");
         try {
             Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build()
                     .parseClaimsJws(token);
-            System.out.println("validToken claims: "+ claims.getBody());
             // 만료되었을 시 false
             return !claims.getBody().getExpiration().before(new Date());
         } catch (Exception e) { // 복호화 과정에서 에러가 나면 유효하지 않은 토큰
@@ -141,9 +139,9 @@ public class TokenProvider {
     public TokenInfo getTokenInfo(String token) {
         Claims body = getClaims(token);
         Set<String> keySet = body.keySet();
-        for (String s : keySet) {
-            System.out.println("s = " + s);
-        }
+//        for (String s : keySet) {
+//            System.out.println("s = " + s);
+//        }
 
         Long studentId = body.get("studentId", Long.class);
         String nickname = body.get("nickname", String.class);

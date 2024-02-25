@@ -26,7 +26,6 @@ public class TokenService {
 //        User user = mainService.findByStudentId(studentId);
 //        String accessToken = tokenProvider.generateToken(user, Duration.ofHours(2));
 //
-//        System.out.println("새로 생성된 액세스 토큰: " + accessToken);
 //
 //        return CreateAccessTokenResponse.builder()
 //                .accessToken(accessToken)

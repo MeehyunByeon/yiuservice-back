@@ -292,7 +292,6 @@ public class MainService {
                         .expiration(exp_refreshToken)
                         .build()
         );
-//        System.out.println("token" + token.getRefreshToken());
         return token.getRefreshToken();
     }
 
@@ -383,13 +382,10 @@ public class MainService {
     }
 
     public Token validRefreshToken(User user, String refreshToken) throws Exception {
-        System.out.println("1");
         Token token = tokenRepository.findById(user.getStudentId())
                 .orElseThrow(() -> new CustomException(ErrorCode.LOGIN_REQUIRED));
-        System.out.println("2");
         // 해당유저의 Refresh 토큰 만료 : Redis에 해당 유저의 토큰이 존재하지 않음
         if (token.getRefreshToken() == null) throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
-        System.out.println("3");
         try {
             // 리프레시 토큰 만료일자가 얼마 남지 않았을 때 만료시간 연장..?
             if (token.getExpiration() < 10) {
@@ -399,11 +395,9 @@ public class MainService {
 
             // 토큰이 같은지 비교
             if (!token.getRefreshToken().equals(refreshToken)) {
-                System.out.println("4");
                 // 원래 null
                 throw new CustomException(ErrorCode.LOGIN_REQUIRED);
             } else {
-                System.out.println("5");
                 return token;
             }
         }
